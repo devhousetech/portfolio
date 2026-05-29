@@ -712,10 +712,133 @@ function Footer() {
   )
 }
 
+// ── LOADING SCREEN ────────────────────────────────────────────────────────
+const WORD = 'MIKE'
+
+function LoadingScreen({ onDone }) {
+  const [displayed, setDisplayed] = useState([])
+  const [fadeOut, setFadeOut] = useState(false)
+
+useEffect(() => {
+  const timers = []
+
+  setDisplayed([])
+
+  const startTyping = setTimeout(() => {
+    WORD.split('').forEach((char, i) => {
+      const timer = setTimeout(() => {
+        setDisplayed(prev => [...prev, char])
+      }, i * 600)
+
+      timers.push(timer)
+    })
+  }, 800)
+
+  timers.push(startTyping)
+
+    // Start fade out
+    timers.push(
+      setTimeout(() => {
+        setFadeOut(true)
+      }, 4500)
+    )
+
+    // Finish loading
+    timers.push(
+      setTimeout(() => {
+        onDone()
+      }, 6000)
+    )
+
+    return () => {
+      timers.forEach(clearTimeout)
+    }
+  }, [onDone])
+
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        inset: 0,
+        zIndex: 9999,
+        background: 'var(--bg)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        opacity: fadeOut ? 0 : 1,
+        transition: 'opacity 1.5s cubic-bezier(0.4,0,0.2,1)',
+        pointerEvents: fadeOut ? 'none' : 'all',
+      }}
+    >
+      <div
+        style={{
+          fontSize: 'clamp(48px, 10vw, 120px)',
+          fontWeight: 700,
+          letterSpacing: '0.4em',
+          color: 'var(--offwhite)',
+          userSelect: 'none',
+          display: 'flex',
+          alignItems: 'center',
+        }}
+      >
+        {displayed.map((char, i) => (
+          <span
+            key={i}
+            style={{
+              display: 'inline-block',
+              animation:
+                'letterIn 0.5s cubic-bezier(0.16,1,0.3,1) both',
+            }}
+          >
+            {char}
+          </span>
+        ))}
+
+        <span className="loading-cursor" />
+      </div>
+
+      <style>{`
+        .loading-cursor{
+          display:inline-block;
+          width:3px;
+          height:0.8em;
+          background:var(--offwhite);
+          margin-left:8px;
+          border-radius:2px;
+          animation:cursorBlink 1s step-end infinite;
+        }
+
+        @keyframes cursorBlink{
+          50%{
+            opacity:0;
+          }
+        }
+
+        @keyframes letterIn{
+          from{
+            opacity:0;
+            transform:translateY(16px);
+            filter:blur(4px);
+          }
+
+          to{
+            opacity:1;
+            transform:translateY(0);
+            filter:blur(0);
+          }
+        }
+      `}</style>
+    </div>
+  )
+}
+
 // ── APP ───────────────────────────────────────────────────────────────────
 export default function App() {
+  const [loading, setLoading] = useState(true)
+
   return (
     <>
+      {loading && <LoadingScreen onDone={() => setLoading(false)} />}
       <Nav />
       <Hero />
       <FeaturedProjects />
