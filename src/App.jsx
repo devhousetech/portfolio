@@ -551,7 +551,7 @@ function About() {
         <h2 style={{ fontSize: 'clamp(28px, 3vw, 40px)', fontWeight: 700, letterSpacing: '-0.02em', color: 'var(--offwhite)' }}>About</h2>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 420px), 1fr))', gap: 'clamp(40px, 6vw, 100px)' }}>
+<div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 420px), 1fr))', gap: 'clamp(40px, 6vw, 100px)' }}>
         <div style={{ textAlign: isMobile ? 'center' : 'left' }}>
           <p style={{ fontSize: '15px', color: 'var(--silver)', lineHeight: 1.85, marginBottom: '18px' }}>
             I go by <strong style={{ color: 'var(--offwhite)', fontWeight: 500 }}>Mike</strong>. I've been building websites for the US market since I joined <strong style={{ color: 'var(--offwhite)', fontWeight: 500 }}>Luxury Presence</strong> — one of the leading real estate website platforms in the US — where I spent nearly 4 years serving US real estate agents and agencies.
@@ -560,7 +560,7 @@ function About() {
             In 2025, I relaunched DevHouse Technologies, secured a white-label partnership with a US real estate marketing agency, built and led a team of 7, and delivered <strong style={{ color: 'var(--offwhite)', fontWeight: 500 }}>70+ projects in under 6 months</strong>. Then I designed, built, and shipped a live SaaS product solo.
           </p>
           <p style={{ fontSize: '15px', color: 'var(--silver)', lineHeight: 1.85 }}>
-            Comfortable in Webflow, WordPress, and React + Vite — with AI tools handling the heavy lifting on the dev side. Can lead a team or work independently. Currently open to <strong style={{ color: 'var(--offwhite)', fontWeight: 500 }}>freelance, full-time, and white-label partnerships</strong>.
+            I have a strong eye for luxury design and genuinely enjoy working with premium brands, high-end real estate clients, and anyone who takes their digital presence seriously. Comfortable in Webflow, WordPress, and React + Vite — with AI tools handling the heavy lifting on the dev side. Currently open to <strong style={{ color: 'var(--offwhite)', fontWeight: 500 }}>freelance, full-time, and white-label partnerships</strong>.
           </p>
         </div>
 
