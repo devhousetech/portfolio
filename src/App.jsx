@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { SVG3D } from '3dsvg'
+import HeroFluid from './HeroFluid'
 import './index.css'
+
 
 const DEVHOUSE_SVG = `<svg version="1.2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1481 1565" width="1481" height="1565">
   <style>.s0 { opacity: 1; fill: #ffffff }</style>
@@ -9,7 +11,6 @@ const DEVHOUSE_SVG = `<svg version="1.2" xmlns="http://www.w3.org/2000/svg" view
 
 const HEADSHOT = '/hero.png'
 
-// ── DATA ──────────────────────────────────────────────────────────────────
 const PROJECTS = [
   { client: 'Arsenal Aviation',     type: 'Website',      role: 'Designer & Developer', year: '2025', url: 'https://www.arsenalaviation.com/', credit: 'own' },
   { client: 'Evolve Realty',        type: 'Website',      role: 'Designer & Developer', year: '2025', url: 'https://www.evolverealtypro.com/', credit: 'own' },
@@ -45,209 +46,198 @@ const SKILLS = [
 // ── NAV ───────────────────────────────────────────────────────────────────
 function Nav() {
   const [scrolled, setScrolled] = useState(false)
-  const [open, setOpen] = useState(false)
-
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 40)
     window.addEventListener('scroll', fn)
     return () => window.removeEventListener('scroll', fn)
   }, [])
-
-  const links = [
-    ['#work', 'Work'],
-    ['#skills', 'Skills'],
-    ['#about', 'About'],
-    ['#saas', 'SaaS'],
-    ['#contact', 'Contact'],
-  ]
-
+  const links = [['#work','Work'],['#skills','Skills'],['#about','About'],['#saas','SaaS'],['#contact','Contact']]
   return (
-    <nav style={{
-      position: 'fixed', top: 0, left: 0, right: 0, zIndex: 200,
-      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
-      padding: '0 clamp(20px, 4vw, 60px)',
-      height: '58px',
-      background: scrolled ? 'rgba(12,13,15,0.92)' : 'transparent',
-      backdropFilter: scrolled ? 'blur(16px)' : 'none',
-      borderBottom: scrolled ? '1px solid var(--border)' : '1px solid transparent',
-      transition: 'background 0.3s, border-color 0.3s, backdrop-filter 0.3s',
-    }}>
-      <div style={{ fontSize: '13px', fontWeight: 600, letterSpacing: '0.01em', color: 'var(--offwhite)' }}>
-        mike<span style={{ color: 'var(--teal)' }}>.</span>devhousetech
-      </div>
-
-      {/* Desktop */}
-      <div style={{ display: 'flex', gap: '28px', alignItems: 'center' }}>
-        {links.map(([href, label]) => (
-          <a key={href} href={href} style={{
-            fontSize: '13px', color: 'var(--silver)',
-            transition: 'color 0.2s', display: window.innerWidth < 768 ? 'none' : 'block'
-          }}
-          onMouseEnter={e => e.target.style.color = 'var(--offwhite)'}
-          onMouseLeave={e => e.target.style.color = 'var(--silver)'}
-          >{label}</a>
+    <nav style={{ position:'fixed', top:0, left:0, right:0, zIndex:200, display:'flex', alignItems:'center', justifyContent:'space-between', padding:'0 clamp(20px,4vw,60px)', height:'58px', background: scrolled?'rgba(12,13,15,0.92)':'transparent', backdropFilter: scrolled?'blur(16px)':'none', borderBottom: scrolled?'1px solid var(--border)':'1px solid transparent', transition:'background 0.3s, border-color 0.3s' }}>
+      <div style={{ fontSize:'13px', fontWeight:600, color:'var(--offwhite)' }}>mike<span style={{ color:'var(--teal)' }}>.</span>devhousetech</div>
+      <div style={{ display:'flex', gap:'28px', alignItems:'center' }}>
+        {links.map(([href,label]) => (
+          <a key={href} href={href} style={{ fontSize:'13px', color:'var(--silver)', transition:'color 0.2s', display: window.innerWidth<768?'none':'block' }}
+            onMouseEnter={e=>e.target.style.color='var(--offwhite)'} onMouseLeave={e=>e.target.style.color='var(--silver)'}>{label}</a>
         ))}
         <a href="https://calendly.com/michael-devhousetech/30min" target="_blank" rel="noreferrer"
-          style={{
-            fontSize: '12px', fontWeight: 500,
-            padding: '7px 18px',
-            border: '1px solid var(--border)',
-            borderRadius: '3px',
-            color: 'var(--offwhite)',
-            transition: 'border-color 0.2s',
-          }}
-          onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--silver)'}
-          onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--border)'}
-        >Book a call</a>
+          style={{ fontSize:'12px', fontWeight:500, padding:'7px 18px', border:'1px solid var(--border)', borderRadius:'3px', color:'var(--offwhite)', transition:'border-color 0.2s' }}
+          onMouseEnter={e=>e.currentTarget.style.borderColor='var(--silver)'} onMouseLeave={e=>e.currentTarget.style.borderColor='var(--border)'}>Book a call</a>
       </div>
     </nav>
   )
 }
 
-// ── HERO ──────────────────────────────────────────────────────────────────
-function Hero() {
-  const [isMobile, setIsMobile] = useState(false)
+// ── SCROLL GRID ───────────────────────────────────────────────────────────
+function ScrollGrid() {
+  const [progress, setProgress] = useState(0)
 
   useEffect(() => {
+    const onScroll = () => {
+      const scrollY = window.scrollY
+      const heroHeight = window.innerHeight
+      const p = Math.min(Math.max(scrollY / (heroHeight * 0.6), 0), 1)
+      setProgress(p)
+    }
+    window.addEventListener('scroll', onScroll, { passive: true })
+    onScroll()
+    return () => window.removeEventListener('scroll', onScroll)
+  }, [])
+
+  const cols = 30
+  const rows = 16
+
+  // Each box appears at a random scroll point and stays visible forever after
+  const thresholds = useRef(
+    Array.from({ length: rows * cols }, () => Math.random())
+  )
+
+  return (
+    <div style={{
+      position: 'absolute',
+      top: 0,
+      left: 0, right: 0, bottom: 0,
+      zIndex: 1,
+      pointerEvents: 'none',
+    }}>
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: `repeat(${cols}, 1fr)`,
+        gridTemplateRows: `repeat(${rows}, 1fr)`,
+        width: '100%',
+        height: '100%',
+        gap: '0',
+      }}>
+        {thresholds.current.map((threshold, i) => {
+          const visible = progress >= threshold
+          return (
+            <div key={i} style={{
+              background: visible ? 'var(--bg)' : 'transparent',
+            }} />
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+// ── CURSOR GRID ───────────────────────────────────────────────────────────
+function CursorGrid({ heroRef }) {
+  const [mouse, setMouse] = useState({ x: -999, y: -999 })
+
+  useEffect(() => {
+    const el = heroRef.current
+    if (!el) return
+    const onMove = (e) => {
+      const rect = el.getBoundingClientRect()
+      setMouse({
+        x: (e.clientX - rect.left) / rect.width,
+        y: (e.clientY - rect.top) / rect.height,
+      })
+    }
+    const onLeave = () => setMouse({ x: -999, y: -999 })
+    el.addEventListener('mousemove', onMove)
+    el.addEventListener('mouseleave', onLeave)
+    return () => {
+      el.removeEventListener('mousemove', onMove)
+      el.removeEventListener('mouseleave', onLeave)
+    }
+  }, [heroRef])
+
+  const cols = 30
+  const rows = 16
+  const radius = 0.18
+
+  return (
+    <div style={{
+      position: 'absolute',
+      inset: 0,
+      zIndex: 2,
+      pointerEvents: 'none',
+    }}>
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: `repeat(${cols}, 1fr)`,
+        gridTemplateRows: `repeat(${rows}, 1fr)`,
+        width: '100%',
+        height: '100%',
+      }}>
+        {Array.from({ length: cols * rows }).map((_, i) => {
+          const col = i % cols
+          const row = Math.floor(i / cols)
+          const cx = (col + 0.5) / cols
+          const cy = (row + 0.5) / rows
+          const dx = cx - mouse.x
+          const dy = cy - mouse.y
+          const dist = Math.sqrt(dx * dx + dy * dy)
+          const strength = Math.max(0, 1 - dist / radius)
+          const alpha = strength * 0.9
+
+          return (
+            <div key={i} style={{
+              border: alpha > 0.01 ? `1px solid rgba(196,198,204,${alpha})` : 'none',
+              boxSizing: 'border-box',
+            }} />
+          )
+        })}
+      </div>
+    </div>
+  )
+}
+
+function Hero() {
+  const [isMobile, setIsMobile] = useState(false)
+  const heroRef = useRef(null)
+  useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768)
-    check()
-    window.addEventListener('resize', check)
+    check(); window.addEventListener('resize', check)
     return () => window.removeEventListener('resize', check)
   }, [])
 
   return (
-    <section style={{
-      position: 'relative',
-      height: '100vh',
-      display: 'flex',
-      flexDirection: 'column',
-      overflowX: 'clip',
-      overflowY: 'hidden',
-    }}>
-
-      {/* BG orb — DO NOT TOUCH */}
-      <div style={{ position: 'absolute', inset: 0, zIndex: 0, overflow: 'hidden' }}>
-        <div style={{ position: 'absolute', inset: 0, background: 'var(--bg)' }} />
-        <div style={{
-          position: 'absolute',
-          width: '90vw', height: '90vw',
-          borderRadius: '50%',
-          background: 'radial-gradient(circle, rgba(80,40,200,0.20) 0%, rgba(74,222,222,0.07) 45%, transparent 70%)',
-          top: '50%', left: '50%',
-          transform: 'translate(-50%, -50%)',
-          animation: 'orbDrift1 22s ease-in-out infinite',
-          pointerEvents: 'none',
-          filter: 'blur(4px)',
-        }} />
+    <section ref={heroRef} style={{ position:'relative', height:'100vh', display:'flex', flexDirection:'column', overflowX:'clip', overflowY:'hidden' }}>
+      {/* BG orb */}
+      <div style={{ position:'absolute', inset:0, zIndex:0, overflow:'hidden' }}>
+        <div style={{ position:'absolute', inset:0, background:'var(--bg)' }} />
+        <div style={{ position:'absolute', width:'90vw', height:'90vw', borderRadius:'50%', background:'radial-gradient(circle, rgba(80,40,200,0.20) 0%, rgba(74,222,222,0.07) 45%, transparent 70%)', top:'50%', left:'50%', transform:'translate(-50%,-50%)', animation:'orbDrift1 22s ease-in-out infinite', pointerEvents:'none', filter:'blur(4px)' }} />
       </div>
 
-      {/* TOP — headline centered */}
-      <div style={{
-        position: 'relative', zIndex: 4,
-        height: isMobile ? '40%' : '32%',
-        display: 'flex', flexDirection: 'column',
-        alignItems: 'center', justifyContent: 'center',
-        textAlign: 'center',
-        padding: '0 clamp(24px, 5vw, 80px)',
-      }}>
-        <h1 style={{
-          fontSize: 'clamp(26px, 4.2vw, 64px)',
-          fontWeight: 700, letterSpacing: '-0.03em', lineHeight: 1.08,
-          color: 'var(--offwhite)', marginBottom: '12px',
-        }}>
-          Web Design, Development<br />
-          <span style={{ color: 'var(--offwhite)' }}>&amp; Real Estate Tech</span>
+
+      <HeroFluid />
+
+      {/* TOP */}
+      <div style={{ position:'relative', zIndex:4, height: isMobile?'40%':'32%', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', textAlign:'center', padding:'0 clamp(24px,5vw,80px)' }}>
+        <h1 style={{ fontSize:'clamp(26px,4.2vw,64px)', fontWeight:700, letterSpacing:'-0.03em', lineHeight:1.08, color:'var(--offwhite)', marginBottom:'12px' }}>
+          Web Design, Development<br /><span style={{ color:'var(--offwhite)' }}>&amp; Real Estate Tech</span>
         </h1>
-        <p style={{
-          fontSize: 'clamp(11px, 1vw, 14px)', color: 'var(--silver)',
-          whiteSpace: isMobile ? 'normal' : 'nowrap',
-          textAlign: 'center',
-          maxWidth: isMobile ? '280px' : 'none',
-          marginBottom: '20px',
-        }}>
+        <p style={{ fontSize:'clamp(11px,1vw,14px)', color:'var(--silver)', whiteSpace: isMobile?'normal':'nowrap', textAlign:'center', maxWidth: isMobile?'280px':'none', marginBottom:'20px' }}>
           Webflow · React · Real estate websites · Based in the Philippines
         </p>
-        <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
-          <a href="#work" style={{
-            padding: '9px 22px', background: 'var(--offwhite)', color: 'var(--bg)',
-            fontSize: '13px', fontWeight: 600, borderRadius: '4px', transition: 'opacity 0.2s',
-          }}
-          onMouseEnter={e => e.currentTarget.style.opacity = '0.85'}
-          onMouseLeave={e => e.currentTarget.style.opacity = '1'}
-          >View work</a>
-          <a href="#contact" style={{
-            padding: '9px 22px', border: '1px solid rgba(138,140,146,0.35)',
-            color: 'var(--offwhite)', fontSize: '13px', fontWeight: 500, borderRadius: '4px',
-            transition: 'border-color 0.2s',
-          }}
-          onMouseEnter={e => e.currentTarget.style.borderColor = 'var(--silver)'}
-          onMouseLeave={e => e.currentTarget.style.borderColor = 'rgba(138,140,146,0.35)'}
-          >About</a>
+        <div style={{ display:'flex', gap:'12px', justifyContent:'center' }}>
+          <a href="#work" style={{ padding:'9px 22px', background:'var(--offwhite)', color:'var(--bg)', fontSize:'13px', fontWeight:600, borderRadius:'4px', transition:'opacity 0.2s' }}
+            onMouseEnter={e=>e.currentTarget.style.opacity='0.85'} onMouseLeave={e=>e.currentTarget.style.opacity='1'}>View work</a>
+          <a href="#contact" style={{ padding:'9px 22px', border:'1px solid rgba(138,140,146,0.35)', color:'var(--offwhite)', fontSize:'13px', fontWeight:500, borderRadius:'4px', transition:'border-color 0.2s' }}
+            onMouseEnter={e=>e.currentTarget.style.borderColor='var(--silver)'} onMouseLeave={e=>e.currentTarget.style.borderColor='rgba(138,140,146,0.35)'}>About</a>
         </div>
       </div>
 
-      {/* BOTTOM — photo left, logo right (logo hidden on mobile) */}
-      <div style={{
-        position: 'relative', zIndex: 2,
-        height: isMobile ? '60%' : '68%',
-        display: 'grid',
-        gridTemplateColumns: isMobile ? '1fr' : '1fr 1fr',
-        minHeight: 0,
-        overflow: 'visible',
-      }}>
-
-        {/* LEFT — photo */}
-        <div style={{ position: 'relative', overflow: 'visible', zIndex: 3 }}>
-          <img
-            src={HEADSHOT}
-            alt="Dan Michael Villamarin"
-            style={{
-              position: 'absolute',
-              bottom: 0,
-              left: '50%',
-              transform: 'translateX(-50%)',
-              width: 'auto',
-              height: '115%',
-              display: 'block',
-            }}
-          />
-          <div style={{
-            position: 'absolute', bottom: 0, left: 0, right: 0,
-            display: 'flex', justifyContent: 'center', gap: isMobile ? '20px' : 'clamp(24px, 3.5vw, 56px)',
-            padding: '18px 28px',
-            background: isMobile
-              ? 'rgba(12,13,15,0.88)'
-              : 'linear-gradient(to right, transparent 0%, rgba(12,13,15,0.92) 28%, rgba(12,13,15,0.92) 72%, transparent 100%)',
-          }}>
-            {[['9+', 'Years experience'], ['70+', 'Projects delivered'], ['5yr', 'Real estate tech']].map(([n, l]) => (
-              <div key={l} style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: isMobile ? '20px' : 'clamp(20px, 2.4vw, 34px)', fontWeight: 700, letterSpacing: '-0.02em', color: 'var(--offwhite)', lineHeight: 1 }}>{n}</div>
-                <div style={{ fontSize: '10px', color: isMobile ? 'var(--offwhite)' : 'var(--muted)', marginTop: '4px', letterSpacing: '0.04em' }}>{l}</div>
+      {/* BOTTOM */}
+      <div style={{ position:'relative', zIndex:2, height: isMobile?'60%':'68%', display:'grid', gridTemplateColumns: isMobile?'1fr':'1fr 1fr', minHeight:0, overflow:'visible' }}>
+        <div style={{ position:'relative', overflow:'visible', zIndex:3 }}>
+          <img src={HEADSHOT} alt="Dan Michael Villamarin" style={{ position:'absolute', bottom:0, left:'50%', transform:'translateX(-50%)', width:'auto', height:'115%', display:'block' }} />
+          <div style={{ position:'absolute', bottom:0, left:0, right:0, display:'flex', justifyContent:'center', gap: isMobile?'20px':'clamp(24px,3.5vw,56px)', padding:'18px 28px', background: isMobile?'rgba(12,13,15,0.88)':'linear-gradient(to right, transparent 0%, rgba(12,13,15,0.92) 28%, rgba(12,13,15,0.92) 72%, transparent 100%)' }}>
+            {[['9+','Years experience'],['70+','Projects delivered'],['5yr','Real estate tech']].map(([n,l]) => (
+              <div key={l} style={{ textAlign:'center' }}>
+                <div style={{ fontSize: isMobile?'20px':'clamp(20px,2.4vw,34px)', fontWeight:700, letterSpacing:'-0.02em', color:'var(--offwhite)', lineHeight:1 }}>{n}</div>
+                <div style={{ fontSize:'10px', color: isMobile?'var(--offwhite)':'var(--muted)', marginTop:'4px', letterSpacing:'0.04em' }}>{l}</div>
               </div>
             ))}
           </div>
         </div>
-
-        {/* RIGHT — 3D logo (tablet + desktop only) */}
         {!isMobile && (
-          <div style={{ position: 'relative', overflow: 'visible' }}>
-            <div style={{
-              position: 'absolute',
-              top: '-40%',
-              left: '-10%',
-              width: '120%',
-              height: '160%',
-              pointerEvents: 'none',
-              userSelect: 'none',
-            }}>
-              <SVG3D
-                svg={DEVHOUSE_SVG}
-                smoothness={0.6}
-                animate="float"
-                animateSpeed={0.4}
-                cursorOrbit
-                lightPosition={[3, 2, 4]}
-              />
+          <div style={{ position:'relative', overflow:'visible' }}>
+            <div style={{ position:'absolute', top:'-40%', left:'-10%', width:'120%', height:'160%', pointerEvents:'none', userSelect:'none' }}>
+              <SVG3D svg={DEVHOUSE_SVG} smoothness={0.6} animate="float" animateSpeed={0.4} cursorOrbit lightPosition={[3,2,4]} />
             </div>
           </div>
         )}
@@ -255,9 +245,9 @@ function Hero() {
 
       <style>{`
         @keyframes orbDrift1 {
-          0%,100% { transform: translate(-50%, -50%) scale(1); }
-          33%     { transform: translate(-50%, -52%) scale(1.04); }
-          66%     { transform: translate(-50%, -48%) scale(0.97); }
+          0%,100% { transform: translate(-50%,-50%) scale(1); }
+          33%     { transform: translate(-50%,-52%) scale(1.04); }
+          66%     { transform: translate(-50%,-48%) scale(0.97); }
         }
       `}</style>
     </section>
@@ -265,6 +255,38 @@ function Hero() {
 }
 
 // ── FEATURED PROJECTS ────────────────────────────────────────────────────
+
+function ProjectCard({ img, title, tag, height, isMobile }) {
+  const [hovered, setHovered] = useState(false)
+  return (
+    <div style={{ borderRadius:'6px', overflow:'hidden', position:'relative', cursor:'pointer' }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}>
+      <img src={img} alt={title} style={{ width:'100%', height, objectFit:'cover', display:'block', transition:'transform 0.6s ease', transform: hovered ? 'scale(1.03)' : 'scale(1)' }} />
+      <div style={{ position:'absolute', inset:0, background:'rgba(12,13,15,0.45)', opacity: hovered ? 1 : 0, transition:'opacity 0.4s ease', zIndex:2, pointerEvents:'none' }} />
+      <div style={{ position:'absolute', bottom:0, left:0, right:0, padding:'24px 28px', background:'linear-gradient(to top, rgba(12,13,15,0.9) 0%, transparent 100%)', textAlign: isMobile?'center':'left', zIndex:3 }}>
+        <div style={{ fontSize:'11px', color:'var(--teal)', letterSpacing:'0.08em', textTransform:'uppercase', marginBottom:'4px' }}>{tag}</div>
+        <div style={{ fontSize:'clamp(15px,2vw,22px)', fontWeight:700, color:'var(--offwhite)', letterSpacing:'-0.01em' }}>{title}</div>
+      </div>
+    </div>
+  )
+}
+
+function ProjectCardSm({ img, title, tag, isMobile }) {
+  const [hovered, setHovered] = useState(false)
+  return (
+    <div style={{ borderRadius:'6px', overflow:'hidden', position:'relative', cursor:'pointer' }}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}>
+      <img src={img} alt={title} style={{ width:'100%', height:'clamp(200px,28vw,400px)', objectFit:'cover', display:'block', transition:'transform 0.6s ease', transform: hovered ? 'scale(1.03)' : 'scale(1)' }} />
+      <div style={{ position:'absolute', inset:0, background:'rgba(12,13,15,0.45)', opacity: hovered ? 1 : 0, transition:'opacity 0.4s ease', zIndex:2, pointerEvents:'none' }} />
+      <div style={{ position:'absolute', bottom:0, left:0, right:0, padding:'20px 24px', background:'linear-gradient(to top, rgba(12,13,15,0.9) 0%, transparent 100%)', textAlign: isMobile?'center':'left', zIndex:3 }}>
+        <div style={{ fontSize:'10px', color:'var(--teal)', letterSpacing:'0.08em', textTransform:'uppercase', marginBottom:'4px' }}>{tag}</div>
+        <div style={{ fontSize:'clamp(14px,1.6vw,18px)', fontWeight:700, color:'var(--offwhite)', letterSpacing:'-0.01em' }}>{title}</div>
+      </div>
+    </div>
+  )
+}
 function FeaturedProjects() {
   const [isMobile, setIsMobile] = useState(false)
   useEffect(() => {
@@ -274,196 +296,29 @@ function FeaturedProjects() {
   }, [])
 
   const projects = [
-    {
-      img: '/Email_Sequence_Generator.png',
-      title: 'Email Sequence Generator',
-      tag: 'SaaS Product',
-      span: 'full',
-    },
-    {
-      img: '/Evolve_Realty.png',
-      title: 'Evolve Realty',
-      tag: 'Real Estate Website',
-      span: 'small',
-    },
-    {
-      img: '/Stacie_Krajcir.png',
-      title: 'Stacie Krajcir',
-      tag: 'Real Estate Website',
-      span: 'medium',
-    },
-    {
-      img: '/Arsenal_Aviation.png',
-      title: 'Arsenal Aviation',
-      tag: 'Brand Website',
-      span: 'full',
-    },
-    {
-      img: '/Devhouse_Site.png',
-      title: 'DevHouse Technologies',
-      tag: 'Agency Website',
-      span: 'full',
-    },
+    { img:'/Email_Sequence_Generator.png', title:'Email Sequence Generator', tag:'SaaS Product' },
+    { img:'/Evolve_Realty.png', title:'Evolve Realty', tag:'Real Estate Website' },
+    { img:'/Stacie_Krajcir.png', title:'Stacie Krajcir', tag:'Real Estate Website' },
+    { img:'/Arsenal_Aviation.png', title:'Arsenal Aviation', tag:'Brand Website' },
+    { img:'/Devhouse_Site.png', title:'DevHouse Technologies', tag:'Agency Website' },
   ]
 
   return (
-    <section id="work" style={{ padding: 'clamp(80px, 10vw, 120px) clamp(20px, 5vw, 60px)', maxWidth: 'var(--max)', margin: '0 auto', borderTop: '1px solid var(--border)' }}>
-      <div style={{ marginBottom: '48px', textAlign: isMobile ? 'center' : 'left' }}>
-        <div style={{ fontSize: '11px', fontWeight: 500, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--teal)', marginBottom: '8px' }}>Featured Work</div>
-        <h2 style={{ fontSize: 'clamp(28px, 3vw, 40px)', fontWeight: 700, letterSpacing: '-0.02em', color: 'var(--offwhite)' }}>Selected Projects</h2>
+    <section id="work" style={{ padding:'clamp(80px,10vw,120px) clamp(20px,5vw,60px)', maxWidth:'var(--max)', margin:'0 auto' }}>
+      <div style={{ marginBottom:'48px', textAlign: isMobile?'center':'left' }}>
+        <div style={{ fontSize:'11px', fontWeight:500, letterSpacing:'0.1em', textTransform:'uppercase', color:'var(--teal)', marginBottom:'8px' }}>Featured Work</div>
+        <h2 style={{ fontSize:'clamp(28px,3vw,40px)', fontWeight:700, letterSpacing:'-0.02em', color:'var(--offwhite)' }}>Selected Projects</h2>
       </div>
-
-      {/* All 4 cards — desktop: big/small+medium/big layout. Mobile: 4 equal rows */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-
-        {/* Row 1 — full width */}
-        <div style={{ borderRadius: '6px', overflow: 'hidden', position: 'relative' }}
-          onMouseEnter={e => e.currentTarget.querySelector('.overlay').style.opacity = '1'}
-          onMouseLeave={e => e.currentTarget.querySelector('.overlay').style.opacity = '0'}
-        >
-          <img src={projects[0].img} alt={projects[0].title} style={{ width: '100%', height: 'clamp(200px, 42vw, 580px)', objectFit: 'cover', display: 'block' }} />
-          <div className="overlay" style={{ position: 'absolute', inset: 0, background: 'rgba(12,13,15,0.45)', opacity: 0, transition: 'opacity 0.3s' }} />
-          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '24px 28px', background: 'linear-gradient(to top, rgba(12,13,15,0.9) 0%, transparent 100%)', textAlign: isMobile ? 'center' : 'left' }}>
-            <div style={{ fontSize: '11px', color: 'var(--teal)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '4px' }}>{projects[0].tag}</div>
-            <div style={{ fontSize: 'clamp(15px, 2vw, 22px)', fontWeight: 700, color: 'var(--offwhite)', letterSpacing: '-0.01em' }}>{projects[0].title}</div>
-          </div>
-        </div>
-
-        {/* Row 2 — small + medium on desktop, stacked on mobile */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))', gap: '16px' }}>
-          {[projects[1], projects[2]].map((p) => (
-            <div key={p.title} style={{ borderRadius: '6px', overflow: 'hidden', position: 'relative' }}
-              onMouseEnter={e => e.currentTarget.querySelector('.overlay').style.opacity = '1'}
-              onMouseLeave={e => e.currentTarget.querySelector('.overlay').style.opacity = '0'}
-            >
-              <img src={p.img} alt={p.title} style={{ width: '100%', height: 'clamp(200px, 28vw, 400px)', objectFit: 'cover', display: 'block' }} />
-              <div className="overlay" style={{ position: 'absolute', inset: 0, background: 'rgba(12,13,15,0.45)', opacity: 0, transition: 'opacity 0.3s' }} />
-              <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '20px 24px', background: 'linear-gradient(to top, rgba(12,13,15,0.9) 0%, transparent 100%)', textAlign: isMobile ? 'center' : 'left' }}>
-                <div style={{ fontSize: '10px', color: 'var(--teal)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '4px' }}>{p.tag}</div>
-                <div style={{ fontSize: 'clamp(14px, 1.6vw, 18px)', fontWeight: 700, color: 'var(--offwhite)', letterSpacing: '-0.01em' }}>{p.title}</div>
-              </div>
-            </div>
+      <div style={{ display:'flex', flexDirection:'column', gap:'16px' }}>
+        {[0,3,4].map(idx => (
+          <ProjectCard key={idx} img={projects[idx].img} title={projects[idx].title} tag={projects[idx].tag} height='clamp(200px,42vw,580px)' isMobile={isMobile} />
+        ))}
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(100%,280px),1fr))', gap:'16px' }}>
+          {[projects[1], projects[2]].map(p => (
+            <ProjectCardSm key={p.title} img={p.img} title={p.title} tag={p.tag} isMobile={isMobile} />
           ))}
         </div>
-
-        {/* Row 3 — full width */}
-        <div style={{ borderRadius: '6px', overflow: 'hidden', position: 'relative' }}
-          onMouseEnter={e => e.currentTarget.querySelector('.overlay').style.opacity = '1'}
-          onMouseLeave={e => e.currentTarget.querySelector('.overlay').style.opacity = '0'}
-        >
-          <img src={projects[3].img} alt={projects[3].title} style={{ width: '100%', height: 'clamp(200px, 42vw, 580px)', objectFit: 'cover', display: 'block' }} />
-          <div className="overlay" style={{ position: 'absolute', inset: 0, background: 'rgba(12,13,15,0.45)', opacity: 0, transition: 'opacity 0.3s' }} />
-          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '24px 28px', background: 'linear-gradient(to top, rgba(12,13,15,0.9) 0%, transparent 100%)', textAlign: isMobile ? 'center' : 'left' }}>
-            <div style={{ fontSize: '11px', color: 'var(--teal)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '4px' }}>{projects[3].tag}</div>
-            <div style={{ fontSize: 'clamp(15px, 2vw, 22px)', fontWeight: 700, color: 'var(--offwhite)', letterSpacing: '-0.01em' }}>{projects[3].title}</div>
-          </div>
-        </div>
-
-        {/* Row 4 — DevHouse full width */}
-        <div style={{ borderRadius: '6px', overflow: 'hidden', position: 'relative' }}
-          onMouseEnter={e => e.currentTarget.querySelector('.overlay').style.opacity = '1'}
-          onMouseLeave={e => e.currentTarget.querySelector('.overlay').style.opacity = '0'}
-        >
-          <img src={projects[4].img} alt={projects[4].title} style={{ width: '100%', height: 'clamp(200px, 42vw, 580px)', objectFit: 'cover', display: 'block' }} />
-          <div className="overlay" style={{ position: 'absolute', inset: 0, background: 'rgba(12,13,15,0.45)', opacity: 0, transition: 'opacity 0.3s' }} />
-          <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, padding: '24px 28px', background: 'linear-gradient(to top, rgba(12,13,15,0.9) 0%, transparent 100%)', textAlign: isMobile ? 'center' : 'left' }}>
-            <div style={{ fontSize: '11px', color: 'var(--teal)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '4px' }}>{projects[4].tag}</div>
-            <div style={{ fontSize: 'clamp(15px, 2vw, 22px)', fontWeight: 700, color: 'var(--offwhite)', letterSpacing: '-0.01em' }}>{projects[4].title}</div>
-          </div>
-        </div>
-
       </div>
-    </section>
-  )
-}
-
-// ── WORK TABLE ────────────────────────────────────────────────────────────
-function WorkTable() {
-  const [hovered, setHovered] = useState(null)
-  const [mousePos, setMousePos] = useState({ x: 0, y: 0 })
-
-  const handleMouseMove = (e) => setMousePos({ x: e.clientX, y: e.clientY })
-
-  return (
-    <section id="work" style={{ padding: 'clamp(80px, 10vw, 120px) clamp(20px, 5vw, 60px)', maxWidth: 'var(--max)', margin: '0 auto' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '48px' }}>
-        <div>
-          <div style={{ fontSize: '11px', fontWeight: 500, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--teal)', marginBottom: '8px' }}>Selected Work</div>
-          <h2 style={{ fontSize: 'clamp(28px, 3vw, 40px)', fontWeight: 700, letterSpacing: '-0.02em', color: 'var(--offwhite)' }}>
-            Projects ({PROJECTS.length})
-          </h2>
-        </div>
-        <a href="https://docs.google.com/spreadsheets/d/1GYS5qjInHNRv_rbDMowEMzsWmkN91QUdFnjh_C5fo08" target="_blank" rel="noreferrer"
-          style={{ fontSize: '12px', color: 'var(--silver)', borderBottom: '1px solid var(--border)', paddingBottom: '1px' }}>
-          View all ↗
-        </a>
-      </div>
-
-      {/* Table header */}
-      <div style={{
-        display: 'grid', gridTemplateColumns: '2fr 1fr 1.5fr 80px',
-        padding: '0 0 12px', borderBottom: '1px solid var(--border)',
-        gap: '16px',
-      }}>
-        {['Client', 'Category', 'Role', 'Year'].map(h => (
-          <div key={h} style={{ fontSize: '10px', fontWeight: 500, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--muted)' }}>{h}</div>
-        ))}
-      </div>
-
-      {/* Rows */}
-      <div onMouseMove={handleMouseMove}>
-        {PROJECTS.map((p, i) => (
-          <div
-            key={i}
-            onMouseEnter={() => setHovered(i)}
-            onMouseLeave={() => setHovered(null)}
-            style={{
-              display: 'grid', gridTemplateColumns: '2fr 1fr 1.5fr 80px',
-              padding: '18px 0', gap: '16px',
-              borderBottom: '1px solid var(--border)',
-              cursor: p.url ? 'pointer' : 'default',
-              transition: 'background 0.15s',
-              background: hovered === i ? 'rgba(255,255,255,0.02)' : 'transparent',
-              borderRadius: '2px',
-            }}
-            onClick={() => p.url && window.open(p.url, '_blank')}
-          >
-            <div style={{
-              fontSize: 'clamp(16px, 1.8vw, 22px)', fontWeight: 600,
-              letterSpacing: '-0.01em',
-              color: hovered === i ? 'var(--offwhite)' : 'var(--silver)',
-              transition: 'color 0.2s',
-              display: 'flex', alignItems: 'center', gap: '10px',
-            }}>
-              {p.client}
-              {p.url && hovered === i && <span style={{ fontSize: '14px', color: 'var(--teal)' }}>↗</span>}
-            </div>
-            <div style={{ fontSize: '13px', color: 'var(--muted)', alignSelf: 'center' }}>{p.type}</div>
-            <div style={{ fontSize: '13px', color: p.credit === 'own' ? 'var(--silver)' : 'var(--muted)', alignSelf: 'center', fontStyle: p.credit === 'team' ? 'italic' : 'normal' }}>{p.role}</div>
-            <div style={{ fontSize: '13px', color: 'var(--muted)', alignSelf: 'center' }}>{p.year}</div>
-          </div>
-        ))}
-      </div>
-
-      {/* Hover preview */}
-      {hovered !== null && PROJECTS[hovered].url && (
-        <div style={{
-          position: 'fixed',
-          left: mousePos.x + 20,
-          top: mousePos.y - 80,
-          zIndex: 500,
-          background: 'var(--card)',
-          border: '1px solid var(--border)',
-          borderRadius: '4px',
-          padding: '10px 16px',
-          fontSize: '12px', color: 'var(--silver)',
-          pointerEvents: 'none',
-          maxWidth: '240px',
-          wordBreak: 'break-all',
-        }}>
-          {PROJECTS[hovered].url}
-        </div>
-      )}
     </section>
   )
 }
@@ -477,46 +332,40 @@ function SkillsTable() {
     check(); window.addEventListener('resize', check)
     return () => window.removeEventListener('resize', check)
   }, [])
-
   return (
-    <section id="skills" style={{ padding: 'clamp(80px, 10vw, 120px) clamp(20px, 5vw, 60px)', maxWidth: 'var(--max)', margin: '0 auto', borderTop: '1px solid var(--border)' }}>
-      <div style={{ marginBottom: '48px', textAlign: isMobile ? 'center' : 'left' }}>
-        <div style={{ fontSize: '11px', fontWeight: 500, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--teal)', marginBottom: '8px' }}>Capabilities</div>
-        <h2 style={{ fontSize: 'clamp(28px, 3vw, 40px)', fontWeight: 700, letterSpacing: '-0.02em', color: 'var(--offwhite)' }}>Skills &amp; Tools</h2>
+    <section id="skills" style={{ padding:'clamp(80px,10vw,120px) clamp(20px,5vw,60px)', maxWidth:'var(--max)', margin:'0 auto', borderTop:'1px solid var(--border)' }}>
+      <div style={{ marginBottom:'48px', textAlign: isMobile?'center':'left' }}>
+        <div style={{ fontSize:'11px', fontWeight:500, letterSpacing:'0.1em', textTransform:'uppercase', color:'var(--teal)', marginBottom:'8px' }}>Capabilities</div>
+        <h2 style={{ fontSize:'clamp(28px,3vw,40px)', fontWeight:700, letterSpacing:'-0.02em', color:'var(--offwhite)' }}>Skills &amp; Tools</h2>
       </div>
-
       {isMobile ? (
         <>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', padding: '0 0 12px', borderBottom: '1px solid var(--border)', gap: '8px' }}>
-            <div style={{ fontSize: '10px', fontWeight: 500, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--muted)' }}>Skill</div>
-            <div style={{ fontSize: '10px', fontWeight: 500, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--muted)', textAlign: 'right' }}>Details</div>
+          <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', padding:'0 0 12px', borderBottom:'1px solid var(--border)', gap:'8px' }}>
+            <div style={{ fontSize:'10px', fontWeight:500, letterSpacing:'0.1em', textTransform:'uppercase', color:'var(--muted)' }}>Skill</div>
+            <div style={{ fontSize:'10px', fontWeight:500, letterSpacing:'0.1em', textTransform:'uppercase', color:'var(--muted)', textAlign:'right' }}>Details</div>
           </div>
-          {SKILLS.map((s, i) => (
-            <div key={i} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', padding: '14px 0', gap: '8px', borderBottom: '1px solid var(--border)' }}>
-              <div style={{ fontSize: '14px', fontWeight: 600, color: 'var(--silver)' }}>{s.skill}</div>
-              <div style={{ textAlign: 'right' }}>
-                <div style={{ fontSize: '11px', color: 'var(--muted)', marginBottom: '2px' }}>{s.category}</div>
-                <div style={{ fontSize: '11px', color: 'var(--muted)' }}>{s.usedFor}</div>
+          {SKILLS.map((s,i) => (
+            <div key={i} style={{ display:'grid', gridTemplateColumns:'1fr 1fr', padding:'14px 0', gap:'8px', borderBottom:'1px solid var(--border)' }}>
+              <div style={{ fontSize:'14px', fontWeight:600, color:'var(--silver)' }}>{s.skill}</div>
+              <div style={{ textAlign:'right' }}>
+                <div style={{ fontSize:'11px', color:'var(--muted)', marginBottom:'2px' }}>{s.category}</div>
+                <div style={{ fontSize:'11px', color:'var(--muted)' }}>{s.usedFor}</div>
               </div>
             </div>
           ))}
         </>
       ) : (
         <>
-          <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 2fr 80px', padding: '0 0 12px', borderBottom: '1px solid var(--border)', gap: '16px' }}>
-            {['Skill', 'Category', 'Used for', 'Since'].map(h => (
-              <div key={h} style={{ fontSize: '10px', fontWeight: 500, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--muted)' }}>{h}</div>
-            ))}
+          <div style={{ display:'grid', gridTemplateColumns:'2fr 1fr 2fr 80px', padding:'0 0 12px', borderBottom:'1px solid var(--border)', gap:'16px' }}>
+            {['Skill','Category','Used for','Since'].map(h => <div key={h} style={{ fontSize:'10px', fontWeight:500, letterSpacing:'0.1em', textTransform:'uppercase', color:'var(--muted)' }}>{h}</div>)}
           </div>
-          {SKILLS.map((s, i) => (
-            <div key={i}
-              onMouseEnter={() => setHovered(i)}
-              onMouseLeave={() => setHovered(null)}
-              style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 2fr 80px', padding: '18px 0', gap: '16px', borderBottom: '1px solid var(--border)', background: hovered === i ? 'rgba(255,255,255,0.02)' : 'transparent', transition: 'background 0.15s', borderRadius: '2px' }}>
-              <div style={{ fontSize: 'clamp(16px, 1.8vw, 22px)', fontWeight: 600, letterSpacing: '-0.01em', color: hovered === i ? 'var(--offwhite)' : 'var(--silver)', transition: 'color 0.2s' }}>{s.skill}</div>
-              <div style={{ fontSize: '13px', color: 'var(--muted)', alignSelf: 'center' }}>{s.category}</div>
-              <div style={{ fontSize: '13px', color: 'var(--muted)', alignSelf: 'center' }}>{s.usedFor}</div>
-              <div style={{ fontSize: '13px', color: 'var(--muted)', alignSelf: 'center' }}>{s.since}</div>
+          {SKILLS.map((s,i) => (
+            <div key={i} onMouseEnter={()=>setHovered(i)} onMouseLeave={()=>setHovered(null)}
+              style={{ display:'grid', gridTemplateColumns:'2fr 1fr 2fr 80px', padding:'18px 0', gap:'16px', borderBottom:'1px solid var(--border)', background: hovered===i?'rgba(255,255,255,0.02)':'transparent', transition:'background 0.15s', borderRadius:'2px' }}>
+              <div style={{ fontSize:'clamp(16px,1.8vw,22px)', fontWeight:600, letterSpacing:'-0.01em', color: hovered===i?'var(--offwhite)':'var(--silver)', transition:'color 0.2s' }}>{s.skill}</div>
+              <div style={{ fontSize:'13px', color:'var(--muted)', alignSelf:'center' }}>{s.category}</div>
+              <div style={{ fontSize:'13px', color:'var(--muted)', alignSelf:'center' }}>{s.usedFor}</div>
+              <div style={{ fontSize:'13px', color:'var(--muted)', alignSelf:'center' }}>{s.since}</div>
             </div>
           ))}
         </>
@@ -533,42 +382,35 @@ function About() {
     check(); window.addEventListener('resize', check)
     return () => window.removeEventListener('resize', check)
   }, [])
-
   const facts = [
-    ['Based', 'Quezon City, Philippines'],
-    ['Experience', '9 years'],
-    ['Previous', 'Luxury Presence — 4 years'],
-    ['Progression', 'Web Designer → Integrations Specialist → Product Expert'],
-    ['Primary stack', 'Webflow, WordPress, React + Vite'],
-    ['Niche', 'US real estate websites'],
-    ['Open to', 'Freelance · Full-time · White-label'],
+    ['Based','Quezon City, Philippines'],['Experience','9 years'],['Previous','Luxury Presence — 4 years'],
+    ['Progression','Web Designer → Integrations Specialist → Product Expert'],
+    ['Primary stack','Webflow, WordPress, React + Vite'],['Niche','US real estate websites'],
+    ['Open to','Freelance · Full-time · White-label'],
   ]
-
   return (
-    <section id="about" style={{ padding: 'clamp(80px, 10vw, 120px) clamp(20px, 5vw, 60px)', maxWidth: 'var(--max)', margin: '0 auto', borderTop: '1px solid var(--border)' }}>
-      <div style={{ marginBottom: '56px', textAlign: isMobile ? 'center' : 'left' }}>
-        <div style={{ fontSize: '11px', fontWeight: 500, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--teal)', marginBottom: '8px' }}>Background</div>
-        <h2 style={{ fontSize: 'clamp(28px, 3vw, 40px)', fontWeight: 700, letterSpacing: '-0.02em', color: 'var(--offwhite)' }}>About</h2>
+    <section id="about" style={{ padding:'clamp(80px,10vw,120px) clamp(20px,5vw,60px)', maxWidth:'var(--max)', margin:'0 auto', borderTop:'1px solid var(--border)' }}>
+      <div style={{ marginBottom:'56px', textAlign: isMobile?'center':'left' }}>
+        <div style={{ fontSize:'11px', fontWeight:500, letterSpacing:'0.1em', textTransform:'uppercase', color:'var(--teal)', marginBottom:'8px' }}>Background</div>
+        <h2 style={{ fontSize:'clamp(28px,3vw,40px)', fontWeight:700, letterSpacing:'-0.02em', color:'var(--offwhite)' }}>About</h2>
       </div>
-
-<div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 420px), 1fr))', gap: 'clamp(40px, 6vw, 100px)' }}>
-        <div style={{ textAlign: isMobile ? 'center' : 'left' }}>
-          <p style={{ fontSize: '15px', color: 'var(--silver)', lineHeight: 1.85, marginBottom: '18px' }}>
-            I go by <strong style={{ color: 'var(--offwhite)', fontWeight: 500 }}>Mike</strong>. I've been building websites for the US market since I joined <strong style={{ color: 'var(--offwhite)', fontWeight: 500 }}>Luxury Presence</strong> — one of the leading real estate website platforms in the US — where I spent nearly 4 years serving US real estate agents and agencies.
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(100%,420px),1fr))', gap:'clamp(40px,6vw,100px)' }}>
+        <div style={{ textAlign: isMobile?'center':'left' }}>
+          <p style={{ fontSize:'15px', color:'var(--silver)', lineHeight:1.85, marginBottom:'18px' }}>
+            I go by <strong style={{ color:'var(--offwhite)', fontWeight:500 }}>Mike</strong>. I've been building websites for the US market since I joined <strong style={{ color:'var(--offwhite)', fontWeight:500 }}>Luxury Presence</strong> — one of the leading real estate website platforms in the US — where I spent nearly 4 years serving US real estate agents and agencies.
           </p>
-          <p style={{ fontSize: '15px', color: 'var(--silver)', lineHeight: 1.85, marginBottom: '18px' }}>
-            In 2025, I relaunched DevHouse Technologies, secured a white-label partnership with a US real estate marketing agency, built and led a team of 7, and delivered <strong style={{ color: 'var(--offwhite)', fontWeight: 500 }}>70+ projects in under 6 months</strong>. Then I designed, built, and shipped a live SaaS product solo.
+          <p style={{ fontSize:'15px', color:'var(--silver)', lineHeight:1.85, marginBottom:'18px' }}>
+            In 2025, I relaunched DevHouse Technologies, secured a white-label partnership with a US real estate marketing agency, built and led a team of 7, and delivered <strong style={{ color:'var(--offwhite)', fontWeight:500 }}>70+ projects in under 6 months</strong>. Then I designed, built, and shipped a live SaaS product solo.
           </p>
-          <p style={{ fontSize: '15px', color: 'var(--silver)', lineHeight: 1.85 }}>
-            I have a strong eye for luxury design and genuinely enjoy working with premium brands, high-end real estate clients, and anyone who takes their digital presence seriously. Comfortable in Webflow, WordPress, and React + Vite — with AI tools handling the heavy lifting on the dev side. Currently open to <strong style={{ color: 'var(--offwhite)', fontWeight: 500 }}>freelance, full-time, and white-label partnerships</strong>.
+          <p style={{ fontSize:'15px', color:'var(--silver)', lineHeight:1.85 }}>
+            I have a strong eye for luxury design and genuinely enjoy working with premium brands, high-end real estate clients, and anyone who takes their digital presence seriously. Comfortable in Webflow, WordPress, and React + Vite — with AI tools handling the heavy lifting on the dev side. Currently open to <strong style={{ color:'var(--offwhite)', fontWeight:500 }}>freelance, full-time, and white-label partnerships</strong>.
           </p>
         </div>
-
         <div>
-          {facts.map(([label, val]) => (
-            <div key={label} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', padding: '14px 0', borderBottom: '1px solid var(--border)', gap: '20px' }}>
-              <span style={{ fontSize: '12px', color: 'var(--muted)', flexShrink: 0, paddingTop: '1px' }}>{label}</span>
-              <span style={{ fontSize: '13px', color: 'var(--offwhite)', fontWeight: 500, textAlign: 'right' }}>{val}</span>
+          {facts.map(([label,val]) => (
+            <div key={label} style={{ display:'flex', justifyContent:'space-between', alignItems:'flex-start', padding:'14px 0', borderBottom:'1px solid var(--border)', gap:'20px' }}>
+              <span style={{ fontSize:'12px', color:'var(--muted)', flexShrink:0, paddingTop:'1px' }}>{label}</span>
+              <span style={{ fontSize:'13px', color:'var(--offwhite)', fontWeight:500, textAlign:'right' }}>{val}</span>
             </div>
           ))}
         </div>
@@ -585,42 +427,27 @@ function Saas() {
     check(); window.addEventListener('resize', check)
     return () => window.removeEventListener('resize', check)
   }, [])
-
   return (
-    <section id="saas" style={{ padding: 'clamp(80px, 10vw, 120px) clamp(20px, 5vw, 60px)', maxWidth: 'var(--max)', margin: '0 auto', borderTop: '1px solid var(--border)' }}>
-      <div style={{ marginBottom: '48px', textAlign: isMobile ? 'center' : 'left' }}>
-        <div style={{ fontSize: '11px', fontWeight: 500, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--teal)', marginBottom: '8px' }}>Product</div>
-        <h2 style={{ fontSize: 'clamp(28px, 3vw, 40px)', fontWeight: 700, letterSpacing: '-0.02em', color: 'var(--offwhite)' }}>Built &amp; Shipped a SaaS</h2>
+    <section id="saas" style={{ padding:'clamp(80px,10vw,120px) clamp(20px,5vw,60px)', maxWidth:'var(--max)', margin:'0 auto', borderTop:'1px solid var(--border)' }}>
+      <div style={{ marginBottom:'48px', textAlign: isMobile?'center':'left' }}>
+        <div style={{ fontSize:'11px', fontWeight:500, letterSpacing:'0.1em', textTransform:'uppercase', color:'var(--teal)', marginBottom:'8px' }}>Product</div>
+        <h2 style={{ fontSize:'clamp(28px,3vw,40px)', fontWeight:700, letterSpacing:'-0.02em', color:'var(--offwhite)' }}>Built &amp; Shipped a SaaS</h2>
       </div>
-
-      <div style={{
-        border: '1px solid var(--border)', borderRadius: '6px', padding: 'clamp(28px, 4vw, 56px)',
-        display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 320px), 1fr))',
-        gap: 'clamp(32px, 4vw, 60px)', alignItems: 'center',
-      }}>
-        <div style={{ textAlign: isMobile ? 'center' : 'left' }}>
-          <h3 style={{ fontSize: 'clamp(22px, 2.5vw, 34px)', fontWeight: 700, letterSpacing: '-0.02em', color: 'var(--offwhite)', lineHeight: 1.15, marginBottom: '14px' }}>
-            Lead Follow-Up<br />Email Sequence Generator
-          </h3>
-          <p style={{ fontSize: '14px', color: 'var(--silver)', lineHeight: 1.8, marginBottom: '24px' }}>
-            A tool built specifically for real estate agents — generates personalised email follow-up sequences from a single input. Designed, built, and launched solo. React + Vite, Vercel serverless, Supabase, Lemon Squeezy, Claude API.
-          </p>
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', marginBottom: '28px', justifyContent: isMobile ? 'center' : 'flex-start' }}>
-            {['React + Vite', 'Vercel', 'Supabase', 'Lemon Squeezy', 'Claude API'].map(t => (
-              <span key={t} style={{ fontSize: '11px', fontWeight: 500, padding: '4px 10px', border: '1px solid var(--border)', borderRadius: '2px', color: 'var(--silver)', letterSpacing: '0.03em' }}>{t}</span>
+      <div style={{ border:'1px solid var(--border)', borderRadius:'6px', padding:'clamp(28px,4vw,56px)', display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(100%,320px),1fr))', gap:'clamp(32px,4vw,60px)', alignItems:'center' }}>
+        <div style={{ textAlign: isMobile?'center':'left' }}>
+          <h3 style={{ fontSize:'clamp(22px,2.5vw,34px)', fontWeight:700, letterSpacing:'-0.02em', color:'var(--offwhite)', lineHeight:1.15, marginBottom:'14px' }}>Lead Follow-Up<br />Email Sequence Generator</h3>
+          <p style={{ fontSize:'14px', color:'var(--silver)', lineHeight:1.8, marginBottom:'24px' }}>A tool built specifically for real estate agents — generates personalised email follow-up sequences from a single input. Designed, built, and launched solo. React + Vite, Vercel serverless, Supabase, Lemon Squeezy, Claude API.</p>
+          <div style={{ display:'flex', flexWrap:'wrap', gap:'8px', marginBottom:'28px', justifyContent: isMobile?'center':'flex-start' }}>
+            {['React + Vite','Vercel','Supabase','Lemon Squeezy','Claude API'].map(t => (
+              <span key={t} style={{ fontSize:'11px', fontWeight:500, padding:'4px 10px', border:'1px solid var(--border)', borderRadius:'2px', color:'var(--silver)', letterSpacing:'0.03em' }}>{t}</span>
             ))}
           </div>
-          <a href="https://sequence.devhousetech.io" target="_blank" rel="noreferrer"
-            style={{ fontSize: '13px', color: 'var(--silver)', borderBottom: '1px solid rgba(196,198,204,0.25)', paddingBottom: '1px' }}>
-            sequence.devhousetech.io ↗
-          </a>
+          <a href="https://sequence.devhousetech.io" target="_blank" rel="noreferrer" style={{ fontSize:'13px', color:'var(--silver)', borderBottom:'1px solid rgba(196,198,204,0.25)', paddingBottom:'1px' }}>sequence.devhousetech.io ↗</a>
         </div>
-        <div style={{ textAlign: isMobile ? 'center' : 'right' }}>
-          <div style={{ fontSize: 'clamp(36px, 4vw, 52px)', fontWeight: 700, letterSpacing: '-0.03em', color: 'var(--offwhite)', lineHeight: 1 }}>
-            $29<span style={{ fontSize: '16px', color: 'var(--muted)', fontWeight: 400 }}>/mo</span>
-          </div>
-          <div style={{ fontSize: '12px', color: 'var(--muted)', marginTop: '6px' }}>Pro Plan</div>
-          <div style={{ fontSize: '13px', color: 'var(--silver)', marginTop: '10px' }}>Free Tier · 3 Sequences</div>
+        <div style={{ textAlign: isMobile?'center':'right' }}>
+          <div style={{ fontSize:'clamp(36px,4vw,52px)', fontWeight:700, letterSpacing:'-0.03em', color:'var(--offwhite)', lineHeight:1 }}>$29<span style={{ fontSize:'16px', color:'var(--muted)', fontWeight:400 }}>/mo</span></div>
+          <div style={{ fontSize:'12px', color:'var(--muted)', marginTop:'6px' }}>Pro Plan</div>
+          <div style={{ fontSize:'13px', color:'var(--silver)', marginTop:'10px' }}>Free Tier · 3 Sequences</div>
         </div>
       </div>
     </section>
@@ -635,50 +462,35 @@ function Contact() {
     check(); window.addEventListener('resize', check)
     return () => window.removeEventListener('resize', check)
   }, [])
-
   const links = [
-    ['Email', 'michael@devhousetech.io', 'mailto:michael@devhousetech.io'],
-    ['LinkedIn', 'Dan Michael Villamarin', 'https://linkedin.com/in/dan-michael-villamarin-666692130'],
-    ['Instagram', '@web.mike', 'https://instagram.com/web.mike'],
-    ['Studio', '@devhousetech', 'https://instagram.com/devhousetech'],
-    ['Portfolio', 'Full project sheet ↗', 'https://docs.google.com/spreadsheets/d/1GYS5qjInHNRv_rbDMowEMzsWmkN91QUdFnjh_C5fo08'],
+    ['Email','michael@devhousetech.io','mailto:michael@devhousetech.io'],
+    ['LinkedIn','Dan Michael Villamarin','https://linkedin.com/in/dan-michael-villamarin-666692130'],
+    ['Instagram','@web.mike','https://instagram.com/web.mike'],
+    ['Studio','@devhousetech','https://instagram.com/devhousetech'],
+    ['Portfolio','Full project sheet ↗','https://docs.google.com/spreadsheets/d/1GYS5qjInHNRv_rbDMowEMzsWmkN91QUdFnjh_C5fo08'],
   ]
-
   return (
-    <section id="contact" style={{ padding: 'clamp(80px, 10vw, 120px) clamp(20px, 5vw, 60px)', maxWidth: 'var(--max)', margin: '0 auto', borderTop: '1px solid var(--border)' }}>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 360px), 1fr))', gap: 'clamp(48px, 6vw, 100px)' }}>
-        <div style={{ textAlign: isMobile ? 'center' : 'left' }}>
-          <h2 style={{ fontSize: 'clamp(36px, 4.5vw, 60px)', fontWeight: 700, letterSpacing: '-0.025em', color: 'var(--offwhite)', lineHeight: 1.05, marginBottom: '18px' }}>
-            Let's work<br />together.
-          </h2>
-          <p style={{ fontSize: '14px', color: 'var(--muted)', lineHeight: 1.8, marginBottom: '36px', maxWidth: isMobile ? '100%' : '360px' }}>
-            Looking for a Webflow expert, a white-label partner for your agency, or a developer who knows real estate inside out.
-          </p>
-          <a href="mailto:michael@devhousetech.io"
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '11px 28px', background: 'var(--offwhite)', color: 'var(--bg)', fontSize: '13px', fontWeight: 600, borderRadius: '3px' }}>
-            michael@devhousetech.io
-          </a>
+    <section id="contact" style={{ padding:'clamp(80px,10vw,120px) clamp(20px,5vw,60px)', maxWidth:'var(--max)', margin:'0 auto', borderTop:'1px solid var(--border)' }}>
+      <div style={{ display:'grid', gridTemplateColumns:'repeat(auto-fit, minmax(min(100%,360px),1fr))', gap:'clamp(48px,6vw,100px)' }}>
+        <div style={{ textAlign: isMobile?'center':'left' }}>
+          <h2 style={{ fontSize:'clamp(36px,4.5vw,60px)', fontWeight:700, letterSpacing:'-0.025em', color:'var(--offwhite)', lineHeight:1.05, marginBottom:'18px' }}>Let's work<br />together.</h2>
+          <p style={{ fontSize:'14px', color:'var(--muted)', lineHeight:1.8, marginBottom:'36px', maxWidth: isMobile?'100%':'360px' }}>Looking for a Webflow expert, a white-label partner for your agency, or a developer who knows real estate inside out.</p>
+          <a href="mailto:michael@devhousetech.io" style={{ display:'inline-flex', alignItems:'center', gap:'8px', padding:'11px 28px', background:'var(--offwhite)', color:'var(--bg)', fontSize:'13px', fontWeight:600, borderRadius:'3px' }}>michael@devhousetech.io</a>
         </div>
-
         <div>
-          {links.map(([label, val, href]) => (
-            <a key={label} href={href} target={href.startsWith('http') ? '_blank' : undefined} rel="noreferrer"
-              style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px 0', borderBottom: '1px solid var(--border)', gap: '16px', transition: 'opacity 0.15s' }}
-              onMouseEnter={e => e.currentTarget.style.opacity = '0.7'}
-              onMouseLeave={e => e.currentTarget.style.opacity = '1'}
-            >
-              <span style={{ fontSize: '12px', color: 'var(--muted)', flexShrink: 0 }}>{label}</span>
-              <span style={{ fontSize: '13px', color: 'var(--silver)', fontWeight: 500, textAlign: 'right' }}>{val}</span>
+          {links.map(([label,val,href]) => (
+            <a key={label} href={href} target={href.startsWith('http')?'_blank':undefined} rel="noreferrer"
+              style={{ display:'flex', justifyContent:'space-between', alignItems:'center', padding:'15px 0', borderBottom:'1px solid var(--border)', gap:'16px', transition:'opacity 0.15s' }}
+              onMouseEnter={e=>e.currentTarget.style.opacity='0.7'} onMouseLeave={e=>e.currentTarget.style.opacity='1'}>
+              <span style={{ fontSize:'12px', color:'var(--muted)', flexShrink:0 }}>{label}</span>
+              <span style={{ fontSize:'13px', color:'var(--silver)', fontWeight:500, textAlign:'right' }}>{val}</span>
             </a>
           ))}
-          <div style={{ marginTop: '28px', textAlign: isMobile ? 'center' : 'left' }}>
+          <div style={{ marginTop:'28px', textAlign: isMobile?'center':'left' }}>
             <a href="https://calendly.com/michael-devhousetech/30min" target="_blank" rel="noreferrer"
-              style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '10px 20px', border: '1px solid var(--border)', borderRadius: '3px', fontSize: '13px', color: 'var(--silver)', transition: 'border-color 0.2s, color 0.2s' }}
-              onMouseEnter={e => { e.currentTarget.style.borderColor = 'var(--silver)'; e.currentTarget.style.color = 'var(--offwhite)' }}
-              onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--border)'; e.currentTarget.style.color = 'var(--silver)' }}
-            >
-              Book a 30-min call ↗
-            </a>
+              style={{ display:'inline-flex', alignItems:'center', gap:'8px', padding:'10px 20px', border:'1px solid var(--border)', borderRadius:'3px', fontSize:'13px', color:'var(--silver)', transition:'border-color 0.2s, color 0.2s' }}
+              onMouseEnter={e=>{ e.currentTarget.style.borderColor='var(--silver)'; e.currentTarget.style.color='var(--offwhite)' }}
+              onMouseLeave={e=>{ e.currentTarget.style.borderColor='var(--border)'; e.currentTarget.style.color='var(--silver)' }}>Book a 30-min call ↗</a>
           </div>
         </div>
       </div>
@@ -694,17 +506,14 @@ function Footer() {
     check(); window.addEventListener('resize', check)
     return () => window.removeEventListener('resize', check)
   }, [])
-
   return (
-    <footer style={{ borderTop: '1px solid var(--border)', padding: '24px clamp(20px, 5vw, 60px)' }}>
-      <div style={{ maxWidth: 'var(--max)', margin: '0 auto', display: 'flex', flexDirection: isMobile ? 'column' : 'row', justifyContent: 'space-between', alignItems: 'center', gap: '12px', textAlign: isMobile ? 'center' : 'left' }}>
-        <div style={{ fontSize: '12px', color: 'var(--muted)' }}>© 2026 Dan Michael Villamarin · DevHouse Technologies</div>
-        <div style={{ display: 'flex', gap: '24px' }}>
-          {[['devhousetech.io', 'https://devhousetech.io'], ['LinkedIn', 'https://linkedin.com/in/dan-michael-villamarin-666692130']].map(([l, h]) => (
-            <a key={l} href={h} target="_blank" rel="noreferrer" style={{ fontSize: '12px', color: 'var(--muted)', transition: 'color 0.2s' }}
-              onMouseEnter={e => e.currentTarget.style.color = 'var(--silver)'}
-              onMouseLeave={e => e.currentTarget.style.color = 'var(--muted)'}
-            >{l}</a>
+    <footer style={{ borderTop:'1px solid var(--border)', padding:'24px clamp(20px,5vw,60px)' }}>
+      <div style={{ maxWidth:'var(--max)', margin:'0 auto', display:'flex', flexDirection: isMobile?'column':'row', justifyContent:'space-between', alignItems:'center', gap:'12px', textAlign: isMobile?'center':'left' }}>
+        <div style={{ fontSize:'12px', color:'var(--muted)' }}>© 2026 Dan Michael Villamarin · DevHouse Technologies</div>
+        <div style={{ display:'flex', gap:'24px' }}>
+          {[['devhousetech.io','https://devhousetech.io'],['LinkedIn','https://linkedin.com/in/dan-michael-villamarin-666692130']].map(([l,h]) => (
+            <a key={l} href={h} target="_blank" rel="noreferrer" style={{ fontSize:'12px', color:'var(--muted)', transition:'color 0.2s' }}
+              onMouseEnter={e=>e.currentTarget.style.color='var(--silver)'} onMouseLeave={e=>e.currentTarget.style.color='var(--muted)'}>{l}</a>
           ))}
         </div>
       </div>
@@ -713,132 +522,10 @@ function Footer() {
 }
 
 // ── LOADING SCREEN ────────────────────────────────────────────────────────
-const WORD = 'MIKE'
-
-function LoadingScreen({ onDone }) {
-  const [displayed, setDisplayed] = useState([])
-  const [fadeOut, setFadeOut] = useState(false)
-
-useEffect(() => {
-  const timers = []
-
-  setDisplayed([])
-
-  const startTyping = setTimeout(() => {
-    WORD.split('').forEach((char, i) => {
-      const timer = setTimeout(() => {
-        setDisplayed(prev => [...prev, char])
-      }, i * 600)
-
-      timers.push(timer)
-    })
-  }, 800)
-
-  timers.push(startTyping)
-
-    // Start fade out
-    timers.push(
-      setTimeout(() => {
-        setFadeOut(true)
-      }, 4500)
-    )
-
-    // Finish loading
-    timers.push(
-      setTimeout(() => {
-        onDone()
-      }, 6000)
-    )
-
-    return () => {
-      timers.forEach(clearTimeout)
-    }
-  }, [onDone])
-
-  return (
-    <div
-      style={{
-        position: 'fixed',
-        inset: 0,
-        zIndex: 9999,
-        background: 'var(--bg)',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        opacity: fadeOut ? 0 : 1,
-        transition: 'opacity 1.5s cubic-bezier(0.4,0,0.2,1)',
-        pointerEvents: fadeOut ? 'none' : 'all',
-      }}
-    >
-      <div
-        style={{
-          fontSize: 'clamp(48px, 10vw, 120px)',
-          fontWeight: 700,
-          letterSpacing: '0.4em',
-          color: 'var(--offwhite)',
-          userSelect: 'none',
-          display: 'flex',
-          alignItems: 'center',
-        }}
-      >
-        {displayed.map((char, i) => (
-          <span
-            key={i}
-            style={{
-              display: 'inline-block',
-              animation:
-                'letterIn 0.5s cubic-bezier(0.16,1,0.3,1) both',
-            }}
-          >
-            {char}
-          </span>
-        ))}
-
-        <span className="loading-cursor" />
-      </div>
-
-      <style>{`
-        .loading-cursor{
-          display:inline-block;
-          width:3px;
-          height:0.8em;
-          background:var(--offwhite);
-          margin-left:8px;
-          border-radius:2px;
-          animation:cursorBlink 1s step-end infinite;
-        }
-
-        @keyframes cursorBlink{
-          50%{
-            opacity:0;
-          }
-        }
-
-        @keyframes letterIn{
-          from{
-            opacity:0;
-            transform:translateY(16px);
-            filter:blur(4px);
-          }
-
-          to{
-            opacity:1;
-            transform:translateY(0);
-            filter:blur(0);
-          }
-        }
-      `}</style>
-    </div>
-  )
-}
-
 // ── APP ───────────────────────────────────────────────────────────────────
 export default function App() {
-  const [loading, setLoading] = useState(true)
-
   return (
     <>
-      {loading && <LoadingScreen onDone={() => setLoading(false)} />}
       <Nav />
       <Hero />
       <FeaturedProjects />
