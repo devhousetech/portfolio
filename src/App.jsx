@@ -1,8 +1,9 @@
 import { useState, useEffect, useRef } from 'react'
 import { SVG3D } from '3dsvg'
 import HeroFluid from './HeroFluid'
+import PixelGame from './PixelGame'
+import LoadingScreen from './LoadingScreen'
 import './index.css'
-
 
 const DEVHOUSE_SVG = `<svg version="1.2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1481 1565" width="1481" height="1565">
   <style>.s0 { opacity: 1; fill: #ffffff }</style>
@@ -69,125 +70,11 @@ function Nav() {
 }
 
 // ── SCROLL GRID ───────────────────────────────────────────────────────────
-function ScrollGrid() {
-  const [progress, setProgress] = useState(0)
-
-  useEffect(() => {
-    const onScroll = () => {
-      const scrollY = window.scrollY
-      const heroHeight = window.innerHeight
-      const p = Math.min(Math.max(scrollY / (heroHeight * 0.6), 0), 1)
-      setProgress(p)
-    }
-    window.addEventListener('scroll', onScroll, { passive: true })
-    onScroll()
-    return () => window.removeEventListener('scroll', onScroll)
-  }, [])
-
-  const cols = 30
-  const rows = 16
-
-  // Each box appears at a random scroll point and stays visible forever after
-  const thresholds = useRef(
-    Array.from({ length: rows * cols }, () => Math.random())
-  )
-
-  return (
-    <div style={{
-      position: 'absolute',
-      top: 0,
-      left: 0, right: 0, bottom: 0,
-      zIndex: 1,
-      pointerEvents: 'none',
-    }}>
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: `repeat(${cols}, 1fr)`,
-        gridTemplateRows: `repeat(${rows}, 1fr)`,
-        width: '100%',
-        height: '100%',
-        gap: '0',
-      }}>
-        {thresholds.current.map((threshold, i) => {
-          const visible = progress >= threshold
-          return (
-            <div key={i} style={{
-              background: visible ? 'var(--bg)' : 'transparent',
-            }} />
-          )
-        })}
-      </div>
-    </div>
-  )
-}
 
 // ── CURSOR GRID ───────────────────────────────────────────────────────────
-function CursorGrid({ heroRef }) {
-  const [mouse, setMouse] = useState({ x: -999, y: -999 })
-
-  useEffect(() => {
-    const el = heroRef.current
-    if (!el) return
-    const onMove = (e) => {
-      const rect = el.getBoundingClientRect()
-      setMouse({
-        x: (e.clientX - rect.left) / rect.width,
-        y: (e.clientY - rect.top) / rect.height,
-      })
-    }
-    const onLeave = () => setMouse({ x: -999, y: -999 })
-    el.addEventListener('mousemove', onMove)
-    el.addEventListener('mouseleave', onLeave)
-    return () => {
-      el.removeEventListener('mousemove', onMove)
-      el.removeEventListener('mouseleave', onLeave)
-    }
-  }, [heroRef])
-
-  const cols = 30
-  const rows = 16
-  const radius = 0.18
-
-  return (
-    <div style={{
-      position: 'absolute',
-      inset: 0,
-      zIndex: 2,
-      pointerEvents: 'none',
-    }}>
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: `repeat(${cols}, 1fr)`,
-        gridTemplateRows: `repeat(${rows}, 1fr)`,
-        width: '100%',
-        height: '100%',
-      }}>
-        {Array.from({ length: cols * rows }).map((_, i) => {
-          const col = i % cols
-          const row = Math.floor(i / cols)
-          const cx = (col + 0.5) / cols
-          const cy = (row + 0.5) / rows
-          const dx = cx - mouse.x
-          const dy = cy - mouse.y
-          const dist = Math.sqrt(dx * dx + dy * dy)
-          const strength = Math.max(0, 1 - dist / radius)
-          const alpha = strength * 0.9
-
-          return (
-            <div key={i} style={{
-              border: alpha > 0.01 ? `1px solid rgba(196,198,204,${alpha})` : 'none',
-              boxSizing: 'border-box',
-            }} />
-          )
-        })}
-      </div>
-    </div>
-  )
-}
 
 function Hero() {
   const [isMobile, setIsMobile] = useState(false)
-  const heroRef = useRef(null)
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768)
     check(); window.addEventListener('resize', check)
@@ -195,7 +82,7 @@ function Hero() {
   }, [])
 
   return (
-    <section ref={heroRef} style={{ position:'relative', height:'100vh', display:'flex', flexDirection:'column', overflowX:'clip', overflowY:'hidden' }}>
+    <section style={{ position:'relative', height:'100vh', display:'flex', flexDirection:'column', overflowX:'clip', overflowY:'hidden' }}>
       {/* BG orb */}
       <div style={{ position:'absolute', inset:0, zIndex:0, overflow:'hidden' }}>
         <div style={{ position:'absolute', inset:0, background:'var(--bg)' }} />
@@ -259,11 +146,10 @@ function Hero() {
 function ProjectCard({ img, title, tag, height, isMobile }) {
   const [hovered, setHovered] = useState(false)
   return (
-    <div style={{ borderRadius:'6px', overflow:'hidden', position:'relative', cursor:'pointer' }}
+    <div style={{ borderRadius:'6px', overflow:'hidden', position:'relative' }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}>
-      <img src={img} alt={title} style={{ width:'100%', height, objectFit:'cover', display:'block', transition:'transform 0.6s ease', transform: hovered ? 'scale(1.03)' : 'scale(1)' }} />
-      <div style={{ position:'absolute', inset:0, background:'rgba(12,13,15,0.45)', opacity: hovered ? 1 : 0, transition:'opacity 0.4s ease', zIndex:2, pointerEvents:'none' }} />
+      <img src={img} alt={title} style={{ width:'100%', height, objectFit:'cover', display:'block' }} />
       <div style={{ position:'absolute', bottom:0, left:0, right:0, padding:'24px 28px', background:'linear-gradient(to top, rgba(12,13,15,0.9) 0%, transparent 100%)', textAlign: isMobile?'center':'left', zIndex:3 }}>
         <div style={{ fontSize:'11px', color:'var(--teal)', letterSpacing:'0.08em', textTransform:'uppercase', marginBottom:'4px' }}>{tag}</div>
         <div style={{ fontSize:'clamp(15px,2vw,22px)', fontWeight:700, color:'var(--offwhite)', letterSpacing:'-0.01em' }}>{title}</div>
@@ -275,7 +161,7 @@ function ProjectCard({ img, title, tag, height, isMobile }) {
 function ProjectCardSm({ img, title, tag, isMobile }) {
   const [hovered, setHovered] = useState(false)
   return (
-    <div style={{ borderRadius:'6px', overflow:'hidden', position:'relative', cursor:'pointer' }}
+    <div style={{ borderRadius:'6px', overflow:'hidden', position:'relative' }}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}>
       <img src={img} alt={title} style={{ width:'100%', height:'clamp(200px,28vw,400px)', objectFit:'cover', display:'block', transition:'transform 0.6s ease', transform: hovered ? 'scale(1.03)' : 'scale(1)' }} />
@@ -524,13 +410,16 @@ function Footer() {
 // ── LOADING SCREEN ────────────────────────────────────────────────────────
 // ── APP ───────────────────────────────────────────────────────────────────
 export default function App() {
+  const [loading, setLoading] = useState(true)
   return (
     <>
+      {loading && <LoadingScreen onDone={() => setLoading(false)} />}
       <Nav />
       <Hero />
       <FeaturedProjects />
       <SkillsTable />
       <About />
+      <PixelGame />
       <Saas />
       <Contact />
       <Footer />
