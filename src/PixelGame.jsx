@@ -173,6 +173,7 @@ export default function PixelGame(){
   const [gameOver,setGameOver]=useState(false)
   const [restartKey,setRestartKey]=useState(0)
   const [fullscreen,setFullscreen]=useState(false)
+  const [muted,setMuted]=useState(false)
 
   const initState=useCallback(()=>{
     const world=createWorld(); worldRef.current=world; world.ensureTo(CW+400)
@@ -190,6 +191,16 @@ export default function PixelGame(){
     keysRef.current['Space']=true
     setTimeout(()=>{ keysRef.current['Space']=false },100)
   },[started, initState])
+
+  const toggleMute = useCallback(()=>{
+    setMuted(m=>{
+      const next=!m
+      if(musicRef.current) musicRef.current.muted=next
+      if(jumpSndRef.current) jumpSndRef.current.muted=next
+      if(hitSndRef.current) hitSndRef.current.muted=next
+      return next
+    })
+  },[])
 
   const toggleFullscreen = useCallback(()=>{
     setFullscreen(f=>{
@@ -421,7 +432,7 @@ export default function PixelGame(){
   },[started,initState,restartKey])
 
   return(
-    <section style={{padding:'clamp(80px,10vw,120px) clamp(20px,5vw,60px)',maxWidth:'var(--max)',margin:'0 auto',borderTop:'1px solid var(--border)'}}>
+    <section id='minigame' style={{padding:'clamp(80px,10vw,120px) clamp(20px,5vw,60px)',maxWidth:'var(--max)',margin:'0 auto',borderTop:'1px solid var(--border)'}}>
       <div style={{marginBottom:32,display:'flex',alignItems:'flex-end',justifyContent:'space-between',flexWrap:'wrap',gap:16}}>
         <div>
           <div style={{fontSize:11,fontWeight:500,letterSpacing:'0.1em',textTransform:'uppercase',color:'var(--teal)',marginBottom:8}}>Mini Game</div>
@@ -510,6 +521,13 @@ export default function PixelGame(){
             onTouchStart={e=>{e.preventDefault();mobileJump()}}
             onMouseDown={mobileJump}
             style={{width:52,height:52,borderRadius:8,border:'1px solid var(--border)',background:'rgba(255,255,255,0.06)',color:'var(--offwhite)',fontSize:13,fontWeight:600,cursor:'pointer',userSelect:'none',touchAction:'none',fontFamily:'monospace'}}>JUMP</button>
+          {/* Mute */}
+          <button
+            onClick={toggleMute}
+            title={muted?'Unmute':'Mute'}
+            style={{width:52,height:52,borderRadius:8,border:'1px solid var(--border)',background:muted?'rgba(255,80,80,0.12)':'rgba(255,255,255,0.06)',color:'var(--offwhite)',fontSize:18,cursor:'pointer',userSelect:'none'}}>
+            {muted?'🔇':'🔊'}
+          </button>
           {/* Fullscreen */}
           <button
             onClick={toggleFullscreen}

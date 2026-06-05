@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { SVG3D } from '3dsvg'
 import HeroFluid from './HeroFluid'
 import PixelGame from './PixelGame'
+import GameFAB from './GameFAB'
 import LoadingScreen from './LoadingScreen'
 import './index.css'
 
@@ -423,6 +424,7 @@ export default function App() {
       <Saas />
       <Contact />
       <Footer />
+      <GameFAB />
     </>
   )
 }
