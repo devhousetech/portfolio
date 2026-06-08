@@ -1,5 +1,13 @@
 @import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,300;1,9..40,400&display=swap');
 
+@font-face {
+  font-family: 'Biennale';
+  src: url('/Biennale Bold.otf') format('opentype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
 html { scroll-behavior: smooth; font-size: 16px; }
 body * { user-select: none; }
@@ -16,6 +24,15 @@ input, textarea { user-select: text; }
   --max: 1800px;
 }
 
+html, body {
+  overscroll-behavior-x: none;
+}
+
+h1, h2, h3 {
+  font-family: 'Biennale', sans-serif;
+  text-transform: uppercase;
+}
+
 body {
   background: var(--bg);
   color: var(--offwhite);
@@ -26,3 +43,138 @@ body {
 
 a { color: inherit; text-decoration: none; }
 button { font-family: inherit; cursor: pointer; border: none; background: none; }
+
+/* ── Glass Buttons ── */
+.px-btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  font-size: 11px; font-weight: 700; letter-spacing: 0.12em;
+  text-transform: uppercase; padding: 13px 32px;
+  cursor: pointer; text-decoration: none; border: none;
+  font-family: inherit; border-radius: 12px;
+  position: relative; overflow: hidden;
+  transition: all 0.2s ease;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+}
+.px-btn::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0; height: 50%;
+  background: linear-gradient(to bottom, rgba(255,255,255,0.18) 0%, rgba(255,255,255,0.04) 100%);
+  border-radius: 12px 12px 0 0;
+  pointer-events: none;
+}
+
+.px-btn-white {
+  background: rgba(237,234,228,0.13);
+  color: #edeae4;
+  border: 1px solid rgba(237,234,228,0.22);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.15);
+}
+.px-btn-white:hover {
+  background: rgba(237,234,228,0.2);
+  border-color: rgba(237,234,228,0.4);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.2);
+  transform: translateY(-1px);
+}
+.px-btn-white:active {
+  transform: translateY(1px);
+  box-shadow: 0 1px 6px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.1);
+}
+
+.px-btn-dark {
+  background: rgba(237,234,228,0.88);
+  color: #0c0d0f;
+  border: 1px solid rgba(237,234,228,0.15);
+  box-shadow: 0 2px 12px rgba(0,0,0,0.35), inset 0 1px 0 rgba(255,255,255,0.6);
+}
+.px-btn-dark:hover {
+  background: rgba(237,234,228,0.96);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.8);
+  transform: translateY(-1px);
+}
+.px-btn-dark:active {
+  transform: translateY(1px);
+  box-shadow: 0 1px 6px rgba(0,0,0,0.3), inset 0 1px 0 rgba(255,255,255,0.4);
+}
+
+/* ── Mobile ── */
+@media (max-width: 768px) {
+
+  /* Hide all arrows on mobile */
+  .arrow-btn-up,
+  .arrow-btn-down,
+  #hero-arrow-down {
+    display: none !important;
+  }
+
+  /* Hero — push content up */
+ .hero-content {
+  justify-content: flex-start !important;
+  padding-top: 80px !important;
+}
+
+  /* About slide 1 */
+  .about-panel {
+    padding-top: 625px !important;
+    padding-bottom: 130px !important;
+  }
+
+  /* About slide 2 — Personal */
+  .personal-slide {
+    grid-template-columns: 1fr !important;
+    grid-template-rows: 1fr auto !important;
+    flex-direction: column !important;
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    padding-bottom: 120px !important;
+  }
+
+  .personal-photo {
+    order: 2 !important;
+    height: 320px !important;
+    flex-shrink: 0 !important;
+  }
+
+  .personal-slide > div:last-child {
+    order: 1 !important;
+    padding-top: 120px !important;
+    overflow-y: visible !important;
+  }
+
+  /* About slide 3 — SaaS */
+  .saas-slide {
+    padding-top: 280px !important;
+    padding-bottom: 130px !important
+  }
+
+  /* Hide desktop contact on mobile */
+  .contact-panel {
+    display: none !important;
+  }
+
+  /* Projects — push top label below nav */
+  .projects-label {
+    top: 88px !important;
+  }
+
+  /* Projects — push item info higher */
+  .projects-item-info {
+    bottom: 130px !important;
+  }
+  body {
+  overflow: hidden !important;
+  position: fixed !important;
+  width: 100% !important;
+}
+}
+#hero-arrow-down {
+  bottom: auto !important;
+  top: 72px !important;
+}
+/* ── Desktop ── */
+@media (min-width: 769px) {
+  .mobile-contact-panel {
+    display: none !important;
+  }
+}

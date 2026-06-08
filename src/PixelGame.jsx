@@ -234,7 +234,7 @@ export default function PixelGame(){
     const dn=(e)=>{
       keysRef.current[e.code]=true
       if(['Space','ArrowUp'].includes(e.code)) e.preventDefault()
-      if(!started) setStarted(true)
+      if(!started && e.code==='Space') setStarted(true)
       // Spacebar retries on game over
       if(e.code==='Space' && stateRef.current?.gameOver){
         stateRef.current=initState(); setScore(0); setGameOver(false); setStarted(true); setRestartKey(k=>k+1)

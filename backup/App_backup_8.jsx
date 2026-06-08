@@ -389,14 +389,14 @@ function FeaturedProjects({ onEnter, onExitTop }) {
         {/* Vignette bottom — matches #0c0d0f brand bg */}
         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '50%', background: 'linear-gradient(to top, #0c0d0f 0%, rgba(12,13,15,0.7) 60%, transparent 100%)', pointerEvents: 'none', zIndex: 1 }} />
         {/* Section label — top left, pushed below red line area */}
-        <div className="projects-label" style={{ position: 'absolute', top: '140px', left: 'clamp(20px,7.14vw,120px)', zIndex: 2 }}>
+        <div style={{ position: 'absolute', top: '140px', left: 'clamp(20px,7.14vw,120px)', zIndex: 2 }}>
           <div style={{ fontSize: '11px', fontWeight: 500, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--teal)', marginBottom: '6px' }}>Featured Work</div>
           <h2 style={{ fontSize: 'clamp(20px,2vw,28px)', fontWeight: 700, color: 'var(--offwhite)' }}>Selected Projects</h2>
         </div>
         {/* Project info — bottom left, animated per card */}
         {PROJECTS_LIST.map((proj, i) => (
-          <div key={i} className="projects-item-info" style={{
-  position: 'absolute', bottom: '56px', left: 'clamp(20px,7.14vw,120px)', zIndex: 2,
+          <div key={i} style={{
+            position: 'absolute', bottom: '56px', left: 'clamp(20px,7.14vw,120px)', zIndex: 2,
             opacity: i === activeIdx ? 1 : 0,
             transform: i === activeIdx ? 'translateY(0px)' : 'translateY(16px)',
             transition: 'opacity 0.7s cubic-bezier(0.4,0,0.2,1) 0.15s, transform 0.7s cubic-bezier(0.4,0,0.2,1) 0.15s',
@@ -433,14 +433,16 @@ function FeaturedProjects({ onEnter, onExitTop }) {
 function SkillsTable() {
   const [activeIdx, setActiveIdx] = useState(0)
   const [phase, setPhase] = useState('hidden') // hidden | in | sticky | out | done
+  const outerRef = useRef(null)
   const panelRef = useRef(null)
   const TOTAL = SKILLS.length
   const ROW_HEIGHT = 80
+  const lastScrollY = useRef(window.scrollY)
   const atFirstItemSince = useRef(null)
   const atLastItemSince = useRef(null)
-  const pinnedY = useRef(0)
+  const pinnedY = useRef(0) // scroll position we lock to during sticky
 
-  // ── Scroll lock ──────────────────────────────────────────────────────
+  // ── Scroll lock helpers ──────────────────────────────────────────────
   const lockRef = useRef(null)
   const lockScrollAt = (y) => {
     if (lockRef.current) window.removeEventListener('scroll', lockRef.current)
@@ -448,55 +450,91 @@ function SkillsTable() {
     window.addEventListener('scroll', lockRef.current)
   }
   const unlockScroll = () => {
-    if (lockRef.current) { window.removeEventListener('scroll', lockRef.current); lockRef.current = null }
+    if (lockRef.current) {
+      window.removeEventListener('scroll', lockRef.current)
+      lockRef.current = null
+    }
   }
 
-  // ── Phase: in ────────────────────────────────────────────────────────
+  // ── Phase: animate-in ────────────────────────────────────────────────
   useEffect(() => {
     if (phase !== 'in') return
-    pinnedY.current = window.scrollY
+    // Lock scroll at current position during animation
     lockScrollAt(window.scrollY)
-    const t = setTimeout(() => { setPhase('sticky') }, 920)
+    const t = setTimeout(() => {
+      unlockScroll()
+      // Jump to start of skills sticky zone
+      if (outerRef.current) {
+        const target = outerRef.current.getBoundingClientRect().top + window.scrollY
+        window.scrollTo({ top: target, behavior: 'instant' })
+        pinnedY.current = target
+        lockScrollAt(target)
+      }
+      setPhase('sticky')
+    }, 920)
     return () => { clearTimeout(t); unlockScroll() }
   }, [phase])
 
-  // ── Phase: out ───────────────────────────────────────────────────────
+  // ── Phase: animate-out ───────────────────────────────────────────────
   useEffect(() => {
     if (phase !== 'out') return
-    unlockScroll()
+    window.scrollTo({ top: 0, behavior: 'instant' })
+    lockScrollAt(0)
     const t = setTimeout(() => {
+      unlockScroll()
       setActiveIdx(0)
       atFirstItemSince.current = null
       atLastItemSince.current = null
       setPhase('hidden')
     }, 920)
-    return () => clearTimeout(t)
+    return () => { clearTimeout(t); unlockScroll() }
   }, [phase])
 
-  // ── Phase: sticky ────────────────────────────────────────────────────
+  // ── Phase: sticky — wheel/touch drives roulette, scroll stays pinned ─
   useEffect(() => {
     if (phase !== 'sticky') return
+
+    // Keep page pinned while roulette is active
     lockScrollAt(pinnedY.current)
+
     let cooldown = false
 
-    const navigate = (dir) => {
+    const onWheel = (e) => {
+      e.preventDefault()
       if (cooldown) return
+      const dir = e.deltaY > 0 ? 'down' : e.deltaY < 0 ? 'up' : null
+      if (!dir) return
       cooldown = true
       setTimeout(() => { cooldown = false }, 600)
+
       if (dir === 'down') {
         setActiveIdx(prev => {
-          if (prev < TOTAL - 1) { atLastItemSince.current = null; return prev + 1 }
-          if (!atLastItemSince.current) { atLastItemSince.current = true; return prev }
+          if (prev < TOTAL - 1) {
+            atLastItemSince.current = null
+            return prev + 1
+          }
+          if (!atLastItemSince.current) {
+            atLastItemSince.current = true
+            return prev
+          }
           atLastItemSince.current = null
           unlockScroll()
-          setTimeout(() => { if (typeof window.__showProjects === 'function') window.__showProjects() }, 50)
+          setTimeout(() => {
+            if (typeof window.__showProjects === 'function') window.__showProjects()
+          }, 50)
           setPhase('done')
           return prev
         })
       } else {
         setActiveIdx(prev => {
-          if (prev > 0) { atFirstItemSince.current = null; return prev - 1 }
-          if (!atFirstItemSince.current) { atFirstItemSince.current = true; return prev }
+          if (prev > 0) {
+            atFirstItemSince.current = null
+            return prev - 1
+          }
+          if (!atFirstItemSince.current) {
+            atFirstItemSince.current = true
+            return prev
+          }
           atFirstItemSince.current = null
           setPhase('out')
           return prev
@@ -504,21 +542,53 @@ function SkillsTable() {
       }
     }
 
-    const onWheel = (e) => { e.preventDefault(); if (e.deltaY > 0) navigate('down'); else navigate('up') }
-
-    let tX = 0, tY = 0
-    const onTouchStart = (e) => { tX = e.touches[0].clientX; tY = e.touches[0].clientY }
+    // Mobile: swipe left/right = section nav, swipe up/down = item nav
+    let touchStartX_sk = 0
+    let touchStartY_sk = 0
+    const onTouchStart = (e) => {
+      touchStartX_sk = e.touches[0].clientX
+      touchStartY_sk = e.touches[0].clientY
+    }
     const onTouchEnd = (e) => {
       if (window.innerWidth > 768) return
-      const dx = tX - e.changedTouches[0].clientX
-      const dy = tY - e.changedTouches[0].clientY
-      if (Math.abs(dx) > Math.abs(dy)) {
+      const dx = touchStartX_sk - e.changedTouches[0].clientX
+      const dy = touchStartY_sk - e.changedTouches[0].clientY
+      const isHorizontal = Math.abs(dx) > Math.abs(dy)
+      if (isHorizontal) {
         if (Math.abs(dx) < 50) return
-        if (dx > 0) { unlockScroll(); setTimeout(() => { if (typeof window.__showProjects === 'function') window.__showProjects() }, 50); setPhase('done') }
-        else { setPhase('out') }
+        if (dx > 0) {
+          // swipe left → Projects
+          unlockScroll()
+          setTimeout(() => { if (typeof window.__showProjects === 'function') window.__showProjects() }, 50)
+          setPhase('done')
+        } else {
+          // swipe right → Hero
+          atFirstItemSince.current = true
+          setPhase('out')
+        }
       } else {
         if (Math.abs(dy) < 50) return
-        navigate(dy > 0 ? 'down' : 'up')
+        if (dy > 0) {
+          // swipe up = next item
+          setActiveIdx(prev => {
+            if (prev < TOTAL - 1) { atLastItemSince.current = null; return prev + 1 }
+            if (!atLastItemSince.current) { atLastItemSince.current = true; return prev }
+            atLastItemSince.current = null
+            unlockScroll()
+            setTimeout(() => { if (typeof window.__showProjects === 'function') window.__showProjects() }, 50)
+            setPhase('done')
+            return prev
+          })
+        } else {
+          // swipe down = prev item
+          setActiveIdx(prev => {
+            if (prev > 0) { atFirstItemSince.current = null; return prev - 1 }
+            if (!atFirstItemSince.current) { atFirstItemSince.current = true; return prev }
+            atFirstItemSince.current = null
+            setPhase('out')
+            return prev
+          })
+        }
       }
     }
 
@@ -532,13 +602,16 @@ function SkillsTable() {
     }
   }, [phase, TOTAL])
 
-  // ── Phase: hidden ────────────────────────────────────────────────────
+  // ── Phase: hidden — Hero is fully locked, any down gesture triggers Skills
   useEffect(() => {
     if (phase !== 'hidden') return
+
+    // Pin page at 0 always
     window.scrollTo({ top: 0, behavior: 'instant' })
     const onScroll = () => window.scrollTo({ top: 0, behavior: 'instant' })
 
     const triggerIn = () => {
+      // Remove scroll lock BEFORE phase change so it doesn't fight the in phase
       window.removeEventListener('scroll', onScroll)
       window.removeEventListener('wheel', onWheel)
       window.removeEventListener('keydown', onKeyDown)
@@ -546,19 +619,42 @@ function SkillsTable() {
       window.removeEventListener('touchend', onTouchEnd)
       setPhase('in')
     }
-    const onWheel = (e) => { if (e.deltaY > 0) { e.preventDefault(); triggerIn() } }
+
+    // Wheel down → trigger
+    const onWheel = (e) => {
+      if (e.deltaY > 0) {
+        e.preventDefault()
+        triggerIn()
+      }
+    }
+
+    // Block scroll keys (arrow down, page down, space, end)
     const SCROLL_KEYS = ['ArrowDown', 'ArrowUp', 'PageDown', 'PageUp', 'Space', 'End', 'Home']
-    const onKeyDown = (e) => { if (SCROLL_KEYS.includes(e.code)) { e.preventDefault(); if (['ArrowDown','PageDown','Space','End'].includes(e.code)) triggerIn() } }
-    let tX = 0
-    const onTouchStart = (e) => { tX = e.touches[0].clientX }
-    const onTouchEnd = (e) => { if (tX - e.changedTouches[0].clientX > 50) triggerIn() }
+    const onKeyDown = (e) => {
+      if (SCROLL_KEYS.includes(e.code)) {
+        e.preventDefault()
+        if (['ArrowDown', 'PageDown', 'Space', 'End'].includes(e.code)) {
+          triggerIn()
+        }
+      }
+    }
+
+    // Touch swipe left → trigger Skills (mobile)
+    let touchStartX = 0
+    const onTouchStart = (e) => { touchStartX = e.touches[0].clientX }
+    const onTouchEnd = (e) => {
+      const dx = touchStartX - e.changedTouches[0].clientX
+      if (dx > 50) triggerIn()
+    }
 
     window.__triggerSkills = triggerIn
+
     window.addEventListener('scroll', onScroll, { passive: true })
     window.addEventListener('wheel', onWheel, { passive: false })
     window.addEventListener('keydown', onKeyDown)
     window.addEventListener('touchstart', onTouchStart, { passive: true })
     window.addEventListener('touchend', onTouchEnd, { passive: true })
+
     return () => {
       window.removeEventListener('scroll', onScroll)
       window.removeEventListener('wheel', onWheel)
@@ -568,20 +664,26 @@ function SkillsTable() {
     }
   }, [phase])
 
-  // ── Phase: done — keep __reenterSkills always registered ────────────
+  // ── Phase: done — watch for Projects exit-top to re-show Skills at last item ─
   useEffect(() => {
     if (phase !== 'done') return
     window.__reenterSkills = () => {
       setActiveIdx(TOTAL - 1)
       atLastItemSince.current = null
-      pinnedY.current = window.scrollY
-      lockScrollAt(window.scrollY)
       setPhase('sticky')
+      if (outerRef.current) {
+        const target = outerRef.current.getBoundingClientRect().top + window.scrollY
+        window.scrollTo({ top: target, behavior: 'instant' })
+        pinnedY.current = target
+        lockScrollAt(target)
+      }
     }
+    return () => { window.__reenterSkills = null }
   }, [phase, TOTAL])
 
   const trackOffset = Math.max(0, (activeIdx - 1) * ROW_HEIGHT)
-  const isFixed = phase !== 'sticky'
+
+  const isFixed = phase === 'hidden' || phase === 'pre-in' || phase === 'in' || phase === 'out' || phase === 'done' || phase === 'done'
   const panelStyle = {
     height: '100vh',
     background: 'var(--bg)',
@@ -595,18 +697,18 @@ function SkillsTable() {
       top: 0, left: 0, right: 0,
       zIndex: 3,
       transform: (phase === 'hidden' || phase === 'pre-in' || phase === 'out') ? (window.innerWidth <= 768 ? 'translateX(100vw)' : 'translateY(100vh)') : 'translate(0,0)',
-      transition: phase === 'hidden' ? 'none' : 'transform 0.9s cubic-bezier(0.76, 0, 0.24, 1)',
+      transition: phase === 'hidden' || phase === 'pre-in' ? 'none' : 'transform 0.9s cubic-bezier(0.76, 0, 0.24, 1)',
     } : {
-      position: 'fixed',
-      top: 0, left: 0, right: 0,
-      zIndex: 3,
-      transform: 'translate(0,0)',
+      position: 'sticky',
+      top: 0,
+      zIndex: 2,
+      transform: 'none',
       transition: 'none',
     })
   }
 
   return (
-    <section id="skills" style={{ position:'relative', height:'1px', zIndex:2 }}>
+    <section id="skills" ref={outerRef} style={{ position:'relative', height: phase === 'sticky' ? `${window.innerHeight + 100}px` : '1px', zIndex:2 }}>
       <div ref={panelRef} style={panelStyle}>
 
         {/* Header */}
@@ -643,24 +745,42 @@ function SkillsTable() {
           </div>
         </div>
 
-        {/* Pagination */}
+        {/* Vertical pagination — right side */}
         <div style={{ position:'absolute', right:'clamp(20px,3vw,48px)', top:'50%', transform:'translateY(-50%)', display:'flex', flexDirection:'column', gap:'8px', alignItems:'center' }}>
           {SKILLS.map((_, i) => (
-            <div key={i} style={{ width:'3px', height: i === activeIdx ? '24px' : '4px', borderRadius:'2px', background: i === activeIdx ? 'var(--offwhite)' : 'var(--border)', transition:'height 0.3s, background 0.3s' }} />
+            <div key={i} style={{
+              width:'3px',
+              height: i === activeIdx ? '24px' : '4px',
+              borderRadius:'2px',
+              background: i === activeIdx ? 'var(--offwhite)' : 'var(--border)',
+              transition:'height 0.3s, background 0.3s',
+            }} />
           ))}
         </div>
 
+        {/* Arrow nav */}
         <ArrowNav
           showUp={true}
           showDown={true}
-          onUp={() => { atFirstItemSince.current = true; setPhase('out') }}
-          onDown={() => { unlockScroll(); setTimeout(() => { if (typeof window.__showProjects === 'function') window.__showProjects() }, 50); setPhase('done') }}
+          onUp={() => {
+            // Skip to Hero
+            atFirstItemSince.current = true
+            setPhase('out')
+          }}
+          onDown={() => {
+            // Skip to Projects
+            unlockScroll()
+            setTimeout(() => {
+              if (typeof window.__showProjects === 'function') window.__showProjects()
+            }, 50)
+            setPhase('done')
+          }}
         />
+
       </div>
     </section>
   )
 }
-
 
 // ── ABOUT ─────────────────────────────────────────────────────────────────
 const ABOUT_SLIDES = [
@@ -996,17 +1116,15 @@ function About({ onEnter, onExitTop }) {
           </div>
         </div>
 
-{/* Slide 3 — Product */}
-<div className="saas-slide" style={{
-  position: 'absolute', inset: 0,
+        {/* Slide 3 — Product */}
+        <div style={{
           position: 'absolute', inset: 0,
           opacity: activeIdx === 2 ? 1 : 0,
           transform: activeIdx === 2 ? 'translateY(0)' : 'translateY(20px)',
           transition: 'opacity 0.7s cubic-bezier(0.4,0,0.2,1) 0.1s, transform 0.7s cubic-bezier(0.4,0,0.2,1) 0.1s',
           pointerEvents: activeIdx === 2 ? 'auto' : 'none',
-display: 'flex', flexDirection: 'column', justifyContent: 'center',
-padding: 'clamp(80px,10vw,120px) clamp(20px,7.14vw,120px)',
-overflowY: 'auto',
+          display: 'flex', flexDirection: 'column', justifyContent: 'center',
+          padding: 'clamp(80px,10vw,120px) clamp(20px,7.14vw,120px)',
         }}>
           <div style={{ marginBottom: '48px' }}>
             <div style={{ fontSize: '11px', fontWeight: 500, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--teal)', marginBottom: '8px' }}>Product</div>
@@ -1294,7 +1412,7 @@ background: '#EDEAE4',
 <div style={{
   background: '#111214',
   display: 'flex', alignItems: 'center', justifyContent: 'center',
-  padding: '50px 32px 32px 40px',
+  padding: '80px 32px',
   flexShrink: 0,
   position: 'relative',
 }}>
@@ -1302,20 +1420,14 @@ background: '#EDEAE4',
   position: 'absolute', top: '16px', left: '50%', transform: 'translateX(-50%)',
   background: 'none', border: 'none', cursor: 'pointer', padding: '12px',
   color: '#EDEAE4', zIndex: 10,
-  display: 'none',
+  animation: 'arrowBlink 1.8s ease-in-out infinite',
 }}>
   <svg width="24" height="14" viewBox="0 0 24 14" fill="none">
     <path d="M1 13L12 2L23 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
   </svg>
 </button>
-        <span onClick={handleUp} style={{
-          position: 'absolute', top: '24px', right: '28px',
-          fontSize: '13px', fontWeight: 700, color: '#fff',
-          textDecoration: 'underline', textUnderlineOffset: '3px',
-          cursor: 'pointer', letterSpacing: '0.05em', opacity: 0.6,
-        }}>CLOSE</span>
         <span style={{
-          fontSize: 'clamp(48px,14vw,80px)',
+          fontSize: 'clamp(72px,20vw,120px)',
           fontWeight: 700,
           color: '#EDEAE4',
           fontFamily: "'Biennale', sans-serif",
@@ -1329,19 +1441,24 @@ background: '#EDEAE4',
       <div style={{
         background: '#E4E0D8',
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-        padding: '24px 32px 32px 40px',
-gap: '2px',
-flexShrink: 0,
+        padding: '48px 32px',
+        gap: '4px',
+        flex: 1,
 position: 'relative',
       }}>
-
+        <span onClick={handleUp} style={{
+          position: 'absolute', top: '24px', right: '28px',
+          fontSize: '13px', fontWeight: 700, color: '#111214',
+          textDecoration: 'underline', textUnderlineOffset: '3px',
+          cursor: 'pointer', letterSpacing: '0.05em', opacity: 0.6,
+        }}>CLOSE</span>
         {links.map(([label, href, external]) => (
           <a key={label} href={href}
             target={external ? '_blank' : undefined}
             rel="noreferrer"
             onClick={label === 'HOME' ? (e) => { e.preventDefault(); window.location.reload() } : undefined}
             style={{
-              fontSize: 'clamp(24px,7vw,40px)',
+              fontSize: 'clamp(32px,9vw,52px)',
               fontWeight: 700,
               fontFamily: "'Biennale', sans-serif",
               letterSpacing: '-0.02em',
@@ -1387,7 +1504,7 @@ flex: 1,
         }}>Let's Connect</a>
 
         {/* Footer */}
-        <div style={{ marginTop: '110px', display: 'flex', justifyContent: 'space-between', width: '100%', borderTop: '1px solid rgba(17,18,20,0.1)', paddingTop: '16px' }}>
+        <div style={{ marginTop: '30px', display: 'flex', justifyContent: 'space-between', width: '100%', borderTop: '1px solid rgba(17,18,20,0.1)', paddingTop: '16px' }}>
           <div style={{ fontSize: '10px', color: '#8A8C92' }}>© 2026 Dan Michael Villamarin</div>
           <a href="https://devhousetech.io" target="_blank" rel="noreferrer" style={{ fontSize: '10px', color: '#8A8C92' }}>devhousetech.io</a>
         </div>

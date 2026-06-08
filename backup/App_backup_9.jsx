@@ -389,14 +389,14 @@ function FeaturedProjects({ onEnter, onExitTop }) {
         {/* Vignette bottom — matches #0c0d0f brand bg */}
         <div style={{ position: 'absolute', bottom: 0, left: 0, right: 0, height: '50%', background: 'linear-gradient(to top, #0c0d0f 0%, rgba(12,13,15,0.7) 60%, transparent 100%)', pointerEvents: 'none', zIndex: 1 }} />
         {/* Section label — top left, pushed below red line area */}
-        <div className="projects-label" style={{ position: 'absolute', top: '140px', left: 'clamp(20px,7.14vw,120px)', zIndex: 2 }}>
+        <div style={{ position: 'absolute', top: '140px', left: 'clamp(20px,7.14vw,120px)', zIndex: 2 }}>
           <div style={{ fontSize: '11px', fontWeight: 500, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--teal)', marginBottom: '6px' }}>Featured Work</div>
           <h2 style={{ fontSize: 'clamp(20px,2vw,28px)', fontWeight: 700, color: 'var(--offwhite)' }}>Selected Projects</h2>
         </div>
         {/* Project info — bottom left, animated per card */}
         {PROJECTS_LIST.map((proj, i) => (
-          <div key={i} className="projects-item-info" style={{
-  position: 'absolute', bottom: '56px', left: 'clamp(20px,7.14vw,120px)', zIndex: 2,
+          <div key={i} style={{
+            position: 'absolute', bottom: '56px', left: 'clamp(20px,7.14vw,120px)', zIndex: 2,
             opacity: i === activeIdx ? 1 : 0,
             transform: i === activeIdx ? 'translateY(0px)' : 'translateY(16px)',
             transition: 'opacity 0.7s cubic-bezier(0.4,0,0.2,1) 0.15s, transform 0.7s cubic-bezier(0.4,0,0.2,1) 0.15s',
@@ -996,17 +996,15 @@ function About({ onEnter, onExitTop }) {
           </div>
         </div>
 
-{/* Slide 3 — Product */}
-<div className="saas-slide" style={{
-  position: 'absolute', inset: 0,
+        {/* Slide 3 — Product */}
+        <div style={{
           position: 'absolute', inset: 0,
           opacity: activeIdx === 2 ? 1 : 0,
           transform: activeIdx === 2 ? 'translateY(0)' : 'translateY(20px)',
           transition: 'opacity 0.7s cubic-bezier(0.4,0,0.2,1) 0.1s, transform 0.7s cubic-bezier(0.4,0,0.2,1) 0.1s',
           pointerEvents: activeIdx === 2 ? 'auto' : 'none',
-display: 'flex', flexDirection: 'column', justifyContent: 'center',
-padding: 'clamp(80px,10vw,120px) clamp(20px,7.14vw,120px)',
-overflowY: 'auto',
+          display: 'flex', flexDirection: 'column', justifyContent: 'center',
+          padding: 'clamp(80px,10vw,120px) clamp(20px,7.14vw,120px)',
         }}>
           <div style={{ marginBottom: '48px' }}>
             <div style={{ fontSize: '11px', fontWeight: 500, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--teal)', marginBottom: '8px' }}>Product</div>
@@ -1294,7 +1292,7 @@ background: '#EDEAE4',
 <div style={{
   background: '#111214',
   display: 'flex', alignItems: 'center', justifyContent: 'center',
-  padding: '50px 32px 32px 40px',
+  padding: '80px 32px',
   flexShrink: 0,
   position: 'relative',
 }}>
@@ -1302,20 +1300,14 @@ background: '#EDEAE4',
   position: 'absolute', top: '16px', left: '50%', transform: 'translateX(-50%)',
   background: 'none', border: 'none', cursor: 'pointer', padding: '12px',
   color: '#EDEAE4', zIndex: 10,
-  display: 'none',
+  animation: 'arrowBlink 1.8s ease-in-out infinite',
 }}>
   <svg width="24" height="14" viewBox="0 0 24 14" fill="none">
     <path d="M1 13L12 2L23 13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
   </svg>
 </button>
-        <span onClick={handleUp} style={{
-          position: 'absolute', top: '24px', right: '28px',
-          fontSize: '13px', fontWeight: 700, color: '#fff',
-          textDecoration: 'underline', textUnderlineOffset: '3px',
-          cursor: 'pointer', letterSpacing: '0.05em', opacity: 0.6,
-        }}>CLOSE</span>
         <span style={{
-          fontSize: 'clamp(48px,14vw,80px)',
+          fontSize: 'clamp(72px,20vw,120px)',
           fontWeight: 700,
           color: '#EDEAE4',
           fontFamily: "'Biennale', sans-serif",
@@ -1329,19 +1321,24 @@ background: '#EDEAE4',
       <div style={{
         background: '#E4E0D8',
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-        padding: '24px 32px 32px 40px',
-gap: '2px',
-flexShrink: 0,
+        padding: '48px 32px',
+        gap: '4px',
+        flex: 1,
 position: 'relative',
       }}>
-
+        <span onClick={handleUp} style={{
+          position: 'absolute', top: '24px', right: '28px',
+          fontSize: '13px', fontWeight: 700, color: '#111214',
+          textDecoration: 'underline', textUnderlineOffset: '3px',
+          cursor: 'pointer', letterSpacing: '0.05em', opacity: 0.6,
+        }}>CLOSE</span>
         {links.map(([label, href, external]) => (
           <a key={label} href={href}
             target={external ? '_blank' : undefined}
             rel="noreferrer"
             onClick={label === 'HOME' ? (e) => { e.preventDefault(); window.location.reload() } : undefined}
             style={{
-              fontSize: 'clamp(24px,7vw,40px)',
+              fontSize: 'clamp(32px,9vw,52px)',
               fontWeight: 700,
               fontFamily: "'Biennale', sans-serif",
               letterSpacing: '-0.02em',
@@ -1387,7 +1384,7 @@ flex: 1,
         }}>Let's Connect</a>
 
         {/* Footer */}
-        <div style={{ marginTop: '110px', display: 'flex', justifyContent: 'space-between', width: '100%', borderTop: '1px solid rgba(17,18,20,0.1)', paddingTop: '16px' }}>
+        <div style={{ marginTop: '30px', display: 'flex', justifyContent: 'space-between', width: '100%', borderTop: '1px solid rgba(17,18,20,0.1)', paddingTop: '16px' }}>
           <div style={{ fontSize: '10px', color: '#8A8C92' }}>© 2026 Dan Michael Villamarin</div>
           <a href="https://devhousetech.io" target="_blank" rel="noreferrer" style={{ fontSize: '10px', color: '#8A8C92' }}>devhousetech.io</a>
         </div>
