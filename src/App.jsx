@@ -195,7 +195,6 @@ const PROJECTS_LIST = [
 function FeaturedProjects({ onEnter, onExitTop }) {
   const [activeIdx, setActiveIdx] = useState(0)
   const [phase, setPhase] = useState('hidden') // hidden | in | active | out | done
-  const [mounted, setMounted] = useState(false)
   const panelRef = useRef(null)
   const atFirstSince = useRef(null)
   const atLastSince = useRef(null)
@@ -204,7 +203,6 @@ function FeaturedProjects({ onEnter, onExitTop }) {
   // Register show trigger so Skills can call it
   useEffect(() => {
     if (onEnter) onEnter(() => {
-      setMounted(true)
       setPhase('hidden')
       requestAnimationFrame(() => {
         setPhase('pre-in')
@@ -373,7 +371,6 @@ function FeaturedProjects({ onEnter, onExitTop }) {
         <div id="work-anchor" style={{ height: 0 }} />
       </section>
       <div ref={panelRef} style={panelStyle}>
-        {mounted && <>
         {/* Crossfade image stack — luxury transition */}
         {PROJECTS_LIST.map((proj, i) => (
           <div key={i} style={{
@@ -426,7 +423,6 @@ function FeaturedProjects({ onEnter, onExitTop }) {
             setPhase('done')
           }}
         />
-        </>}
       </div>
     </>
   )
@@ -675,7 +671,6 @@ const ABOUT_SLIDES = [
 function About({ onEnter, onExitTop }) {
   const [activeIdx, setActiveIdx] = useState(0)
   const [phase, setPhase] = useState('hidden')
-  const [mounted, setMounted] = useState(false)
   const panelRef = useRef(null)
   const atFirstSince = useRef(null)
   const atLastSince = useRef(null)
@@ -683,7 +678,6 @@ function About({ onEnter, onExitTop }) {
 
   useEffect(() => {
     if (onEnter) onEnter(() => {
-      setMounted(true)
       setPhase('hidden')
       requestAnimationFrame(() => {
         setPhase('pre-in')
@@ -906,7 +900,6 @@ function About({ onEnter, onExitTop }) {
     <>
       <section id="about" style={{ height: '1px', position: 'relative', zIndex: 1 }} />
       <div ref={panelRef} style={panelStyle}>
-        {mounted && <>
 
         {/* Slide 1 — Professional */}
 <div className="about-panel" style={{
@@ -1081,7 +1074,6 @@ overflowY: 'auto',
             }
           }}
         />
-        </>}
 
       </div>
     </>
@@ -1295,7 +1287,6 @@ transition: animating ? 'transform 0.9s cubic-bezier(0.76, 0, 0.24, 1)' : 'none'
 willChange: 'transform',
 background: '#EDEAE4',
     }}>
-      {visible && <>
 
       {/* BLACK — MIKE */}
 <div style={{
@@ -1402,7 +1393,6 @@ flex: 1,
     
       </div>
 
-      </>}
     </div>
   )
 }
@@ -1645,6 +1635,27 @@ fontSize: '14px',
 // ── APP ───────────────────────────────────────────────────────────────────
 export default function App() {
   const [loading, setLoading] = useState(true)
+  const [showGestureHint, setShowGestureHint] = useState(false)
+
+  // Show gesture hint on touch devices (mobile + tablet) only, after loading
+  useEffect(() => {
+    if (loading) return
+    if (window.innerWidth > 1024) return
+    const t = setTimeout(() => setShowGestureHint(true), 300)
+    return () => clearTimeout(t)
+  }, [loading])
+
+  // Hide on first touch or after 4 seconds
+  useEffect(() => {
+    if (!showGestureHint) return
+    const hide = () => setShowGestureHint(false)
+    const t = setTimeout(hide, 4000)
+    window.addEventListener('touchstart', hide, { once: true })
+    return () => {
+      clearTimeout(t)
+      window.removeEventListener('touchstart', hide)
+    }
+  }, [showGestureHint])
 
   useEffect(() => {
     window.__showContact = () => {
@@ -1658,6 +1669,42 @@ export default function App() {
   return (
     <>
       {loading && <LoadingScreen onDone={() => setLoading(false)} />}
+
+      {/* Gesture hint — mobile/tablet only, shows once after loading */}
+      {showGestureHint && (
+        <div style={{
+          position: 'fixed', bottom: '80px', left: '50%', transform: 'translateX(-50%)',
+          zIndex: 999, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px',
+          pointerEvents: 'none',
+          animation: 'gestureHintFade 4s ease-in-out forwards',
+        }}>
+          <style>{`
+            @keyframes gestureHintFade {
+              0% { opacity: 0; }
+              15% { opacity: 1; }
+              75% { opacity: 1; }
+              100% { opacity: 0; }
+            }
+            @keyframes swipeAnim {
+              0%, 100% { transform: translateX(0px); opacity: 0.25; }
+              50% { transform: translateX(-22px); opacity: 0.5; }
+            }
+          `}</style>
+          <img src="/gesture-white.png" alt="swipe" style={{
+            width: '64px', height: '64px', objectFit: 'contain',
+            opacity: 0.4,
+            animation: 'swipeAnim 1.2s ease-in-out infinite',
+          }} />
+          <div style={{
+            fontSize: '11px', fontWeight: 600, letterSpacing: '0.1em',
+            textTransform: 'uppercase', color: 'var(--offwhite)', opacity: 0.5,
+            background: 'rgba(12,13,15,0.7)', padding: '6px 14px',
+            borderRadius: '20px', border: '1px solid rgba(196,198,204,0.2)',
+            backdropFilter: 'blur(8px)', whiteSpace: 'nowrap',
+          }}>Swipe to explore</div>
+        </div>
+      )}
+
       <Nav />
       {/* Hero layer */}
       <div style={{ position:'relative', zIndex:0 }}>
