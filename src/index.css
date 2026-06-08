@@ -117,7 +117,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   /* About slide 1 */
   .about-panel {
     padding-top: 625px !important;
-    padding-bottom: 130px !important;
+ 
   }
 
   /* About slide 2 — Personal */
@@ -127,7 +127,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
     flex-direction: column !important;
     overflow-y: auto !important;
     -webkit-overflow-scrolling: touch !important;
-    padding-bottom: 120px !important;
+
   }
 
   .personal-photo {
@@ -145,7 +145,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   /* About slide 3 — SaaS */
   .saas-slide {
     padding-top: 280px !important;
-    padding-bottom: 130px !important
+
   }
 
   /* Hide desktop contact on mobile */
@@ -158,10 +158,6 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
     top: 88px !important;
   }
 
-  /* Projects — push item info higher */
-  .projects-item-info {
-    bottom: 130px !important;
-  }
   body {
   overflow: hidden !important;
   position: fixed !important;
@@ -177,4 +173,30 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
   .mobile-contact-panel {
     display: none !important;
   }
+}
+
+/* Fix 100vh on mobile Safari — use dynamic viewport height */
+
+@supports (height: 100dvh) {
+  body {
+    min-height: 100dvh;
+  }
+}
+
+@supports (height: 100dvh) {
+  @media (max-width: 768px) {
+    * {
+      --vh: 1dvh;
+    }
+    section {
+      height: 100dvh !important;
+    }
+  }
+}
+
+::-webkit-scrollbar {
+  display: none;
+}
+* {
+  scrollbar-width: none;
 }

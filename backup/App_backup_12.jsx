@@ -59,7 +59,7 @@ function Hero() {
   }, [])
 
   return (
-    <section style={{ position:'relative', height:'100dvh', display:'flex', flexDirection:'column', overflowX:'clip', overflowY:'hidden' }}>
+    <section style={{ position:'relative', height:'100vh', display:'flex', flexDirection:'column', overflowX:'clip', overflowY:'hidden' }}>
       <div style={{ position:'absolute', inset:0, zIndex:0, overflow:'hidden' }}>
         <div style={{ position:'absolute', inset:0, background:'var(--bg)' }} />
         <div style={{ position:'absolute', width:'90vw', height:'90vw', borderRadius:'50%', background:'radial-gradient(circle, rgba(80,40,200,0.20) 0%, rgba(74,222,222,0.07) 45%, transparent 70%)', top:'50%', left:'50%', transform:'translate(-50%,-50%)', animation:'orbDrift1 22s ease-in-out infinite', pointerEvents:'none', filter:'blur(4px)' }} />
@@ -338,11 +338,11 @@ function FeaturedProjects({ onEnter, onExitTop }) {
   const panelStyle = {
     position: 'fixed',
     top: 0, left: 0, right: 0,
-    height: '100dvh',
+    height: '100vh',
     zIndex: 4,
     willChange: 'transform',
     overflow: 'hidden',
-    transform: (phase === 'hidden' || phase === 'pre-in' || phase === 'out') ? (window.innerWidth <= 768 ? 'translateX(100vw)' : 'translateY(100dvh)') : 'translate(0,0)',
+    transform: (phase === 'hidden' || phase === 'pre-in' || phase === 'out') ? (window.innerWidth <= 768 ? 'translateX(100vw)' : 'translateY(100vh)') : 'translate(0,0)',
     transition: phase === 'hidden' || phase === 'pre-in' ? 'none' : 'transform 0.9s cubic-bezier(0.76, 0, 0.24, 1)',
   }
 
@@ -563,7 +563,7 @@ function SkillsTable() {
   const panelStyle = {
     position: 'fixed',
     top: 0, left: 0, right: 0,
-    height: '100dvh',
+    height: '100vh',
     zIndex: 3,
     background: 'var(--bg)',
     overflow: 'hidden',
@@ -571,7 +571,7 @@ function SkillsTable() {
     flexDirection: 'column',
     justifyContent: 'center',
     willChange: 'transform',
-    transform: (phase === 'hidden' || phase === 'out') ? (window.innerWidth <= 768 ? 'translateX(100vw)' : 'translateY(100dvh)') : 'translate(0,0)',
+    transform: (phase === 'hidden' || phase === 'out') ? (window.innerWidth <= 768 ? 'translateX(100vw)' : 'translateY(100vh)') : 'translate(0,0)',
     transition: phase === 'hidden' ? 'none' : 'transform 0.9s cubic-bezier(0.76, 0, 0.24, 1)',
   }
 
@@ -859,12 +859,12 @@ function About({ onEnter, onExitTop }) {
   const panelStyle = {
     position: 'fixed',
     top: 0, left: 0, right: 0,
-    height: '100dvh',
+    height: '100vh',
     zIndex: 5,
     willChange: 'transform',
     overflow: 'hidden',
     background: 'var(--bg)',
-    transform: (phase === 'hidden' || phase === 'pre-in' || phase === 'out') ? (window.innerWidth <= 768 ? 'translateX(100vw)' : 'translateY(100dvh)') : 'translate(0,0)',
+    transform: (phase === 'hidden' || phase === 'pre-in' || phase === 'out') ? (window.innerWidth <= 768 ? 'translateX(100vw)' : 'translateY(100vh)') : 'translate(0,0)',
     transition: phase === 'hidden' || phase === 'pre-in' ? 'none' : 'transform 0.9s cubic-bezier(0.76, 0, 0.24, 1)',
   }
 
@@ -1124,12 +1124,12 @@ function Saas({ onEnter, onExitTop }) {
   const panelStyle = {
     position: 'fixed',
     top: 0, left: 0, right: 0,
-    height: '100dvh',
+    height: '100vh',
     zIndex: 6,
     willChange: 'transform',
     overflow: 'hidden',
     background: 'var(--bg)',
-    transform: phase === 'hidden' || phase === 'pre-in' ? 'translateY(100dvh)' : phase === 'out' ? 'translateY(100dvh)' : 'translateY(0)',
+    transform: phase === 'hidden' || phase === 'pre-in' ? 'translateY(100vh)' : phase === 'out' ? 'translateY(100vh)' : 'translateY(0)',
     transition: phase === 'hidden' || phase === 'pre-in' ? 'none' : 'transform 0.9s cubic-bezier(0.76, 0, 0.24, 1)',
   }
 
@@ -1247,7 +1247,7 @@ function MobileContact({ onEnter, onExitTop }) {
     <div className="mobile-contact-panel" style={{
       position: 'fixed',
       top: 0, left: 0, right: 0,
-      height: '100dvh',
+      height: '100vh',
       zIndex: 7,
       display: 'flex',
       flexDirection: 'column',
@@ -1357,7 +1357,7 @@ flex: 1,
         }}>Let's Connect</a>
 
         {/* Footer */}
-        <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'space-between', width: '100%', borderTop: '1px solid rgba(17,18,20,0.1)', paddingTop: '16px' }}>
+        <div style={{ marginTop: '110px', display: 'flex', justifyContent: 'space-between', width: '100%', borderTop: '1px solid rgba(17,18,20,0.1)', paddingTop: '16px' }}>
           <div style={{ fontSize: '10px', color: '#8A8C92' }}>© 2026 Dan Michael Villamarin</div>
           <a href="https://devhousetech.io" target="_blank" rel="noreferrer" style={{ fontSize: '10px', color: '#8A8C92' }}>devhousetech.io</a>
         </div>
@@ -1455,7 +1455,7 @@ function Contact({ onEnter, onExitTop }) {
       {/* Full panel slides in from right */}
       <div className="contact-panel" style={{
         position: 'fixed',
-        top: 0, left: 0, right: 0, height: '100dvh',
+        top: 0, left: 0, right: 0, height: '100vh',
         zIndex: 7,
         display: 'flex', flexDirection: 'row',
 overflow: 'hidden',
@@ -1586,27 +1586,6 @@ fontSize: '14px',
 // ── APP ───────────────────────────────────────────────────────────────────
 export default function App() {
   const [loading, setLoading] = useState(true)
-  const [showGestureHint, setShowGestureHint] = useState(false)
-
-  // Show gesture hint on mobile only, after loading
-  useEffect(() => {
-    if (loading) return
-    if (window.innerWidth > 768) return
-    const t = setTimeout(() => setShowGestureHint(true), 300)
-    return () => clearTimeout(t)
-  }, [loading])
-
-  // Hide on first swipe or after 4 seconds
-  useEffect(() => {
-    if (!showGestureHint) return
-    const hide = () => setShowGestureHint(false)
-    const t = setTimeout(hide, 4000)
-    window.addEventListener('touchstart', hide, { once: true })
-    return () => {
-      clearTimeout(t)
-      window.removeEventListener('touchstart', hide)
-    }
-  }, [showGestureHint])
 
   useEffect(() => {
     window.__showContact = () => {
@@ -1620,41 +1599,6 @@ export default function App() {
   return (
     <>
       {loading && <LoadingScreen onDone={() => setLoading(false)} />}
-
-      {/* Gesture hint — mobile only, shows once after loading */}
-      {showGestureHint && (
-        <div style={{
-          position: 'fixed', bottom: '80px', left: '50%', transform: 'translateX(-50%)',
-          zIndex: 999, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px',
-          pointerEvents: 'none',
-          animation: 'gestureHintFade 4s ease-in-out forwards',
-        }}>
-          <style>{`
-            @keyframes gestureHintFade {
-              0% { opacity: 0; }
-              15% { opacity: 1; }
-              75% { opacity: 1; }
-              100% { opacity: 0; }
-            }
-            @keyframes swipeAnim {
-              0%, 100% { transform: translateX(0px); opacity: 0.25; }
-              50% { transform: translateX(-22px); opacity: 0.5; }
-            }
-          `}</style>
-          <img src="/gesture-white.png" alt="swipe" style={{
-            width: '64px', height: '64px', objectFit: 'contain',
-            opacity: 0.4,
-            animation: 'swipeAnim 1.2s ease-in-out infinite',
-          }} />
-          <div style={{
-            fontSize: '11px', fontWeight: 600, letterSpacing: '0.1em',
-            textTransform: 'uppercase', color: 'var(--offwhite)', opacity: 0.5,
-            background: 'rgba(12,13,15,0.7)', padding: '6px 14px',
-            borderRadius: '20px', border: '1px solid rgba(196,198,204,0.2)',
-            backdropFilter: 'blur(8px)', whiteSpace: 'nowrap',
-          }}>Swipe to explore</div>
-        </div>
-      )}
       <Nav />
       {/* Hero layer */}
       <div style={{ position:'relative', zIndex:0 }}>
