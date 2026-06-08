@@ -968,16 +968,16 @@ function About({ onEnter, onExitTop }) {
               <div style={{ fontSize: '11px', fontWeight: 500, letterSpacing: '0.1em', textTransform: 'uppercase', color: 'var(--teal)', marginBottom: '8px' }}>Beyond the screen</div>
               <h2 style={{ fontSize: 'clamp(28px,3vw,40px)', fontWeight: 700, color: 'var(--offwhite)' }}>The Other Side</h2>
             </div>
-            <p style={{ fontSize: '15px', color: 'var(--silver)', lineHeight: 1.85, marginBottom: '32px' }}>
+            <p style={{ fontSize: '15px', color: 'var(--silver)', lineHeight: 1.85, marginBottom: '18px' }}>
              Beyond client projects and product launches, I'm someone who genuinely enjoys building things.
             </p>
-            <p style={{ fontSize: '15px', color: 'var(--silver)', lineHeight: 1.85, marginBottom: '32px' }}>
+            <p style={{ fontSize: '15px', color: 'var(--silver)', lineHeight: 1.85, marginBottom: '18px' }}>
             If I become interested in something, I tend to learn everything I can about it until I understand it well enough to build, improve, or teach it. That mindset has taken me through web design, development, SaaS, AI, leadership, music, and countless side projects over the years.
             </p>
-            <p style={{ fontSize: '15px', color: 'var(--silver)', lineHeight: 1.85, marginBottom: '32px' }}>
+            <p style={{ fontSize: '15px', color: 'var(--silver)', lineHeight: 1.85, marginBottom: '18px' }}>
              Most weekends you'll find me experimenting with AI, exploring new product ideas, playing games, practicing music, or diving deep into whatever topic has captured my curiosity that week.
             </p>
-            <p style={{ fontSize: '15px', color: 'var(--silver)', lineHeight: 1.85, marginBottom: '32px' }}>
+            <p style={{ fontSize: '15px', color: 'var(--silver)', lineHeight: 1.85, marginBottom: '18px' }}>
              Outside of work, I enjoy traveling when I get the chance, following Dota 2 tournaments, watching documentaries and long-form interviews, and spending quiet evenings researching ideas that might eventually become products.
             </p>
 
