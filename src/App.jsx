@@ -871,7 +871,7 @@ function About({ onEnter, onExitTop }) {
     ['Previous','Luxury Presence — 4 years'],
     ['Progression','Web Designer → Integrations Specialist → Product Expert'],
     ['Primary stack','Webflow, WordPress, React + Vite'],
-    ['Niche','US real estate websites'],
+    ['Niche','US Real Estate Websites'],
     ['Open to','Freelance · Full-time · White-label'],
   ]
 
@@ -880,7 +880,7 @@ function About({ onEnter, onExitTop }) {
     ['Building','AI Tools for Realtors'],
     ['Weekend Mode','Gaming, Music & Side Projects'],
     ['Watching','Dota 2, Documentaries, Diary of a CEO, Anime'],
-    ['Learning About','Startups, technology, history'],
+    ['Learning About','Startups, Technology, History'],
     ['Fuel','Coffee'],
     ['Work Style','Remote-first'],
     ['Long-term goal','Building Products That Help Businesses Grow'],
