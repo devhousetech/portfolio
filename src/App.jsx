@@ -2,9 +2,15 @@ import { useState, useEffect, useRef } from 'react'
 import { SVG3D } from '3dsvg'
 import HeroFluid from './HeroFluid'
 import PixelGame from './PixelGame'
+import GameFAB from './GameFAB'
 import LoadingScreen from './LoadingScreen'
 import './index.css'
 
+const getTransform = (condition, mobileHidden = 'translateX(100vw)', desktopHidden = 'translateY(100vh)') => {
+  const mobile = typeof window !== 'undefined' && window.innerWidth <= 768
+  if (condition) return mobile ? mobileHidden : desktopHidden
+  return 'translate(0,0)'
+}
 
 const DEVHOUSE_SVG = `<svg version="1.2" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1481 1565" width="1481" height="1565">
   <style>.s0 { opacity: 1; fill: #ffffff }</style>
@@ -13,6 +19,19 @@ const DEVHOUSE_SVG = `<svg version="1.2" xmlns="http://www.w3.org/2000/svg" view
 
 const HEADSHOT = '/hero.png'
 
+const PROJECTS = [
+  { client: 'Arsenal Aviation',     type: 'Website',      role: 'Designer & Developer', year: '2025', url: 'https://www.arsenalaviation.com/', credit: 'own' },
+  { client: 'Evolve Realty',        type: 'Website',      role: 'Designer & Developer', year: '2025', url: 'https://www.evolverealtypro.com/', credit: 'own' },
+  { client: 'Whitney Harvey',       type: 'Website',      role: 'Designer & Developer', year: '2025', url: 'https://www.whitneyharveyteam.com/', credit: 'own' },
+  { client: 'Cisneros Realty',      type: 'Website',      role: 'Designer & Developer', year: '2025', url: null, credit: 'own' },
+  { client: 'Lynea Carver',         type: 'Website',      role: 'Build & Production',   year: '2025', url: 'https://www.lyneacarver.com/', credit: 'team' },
+  { client: 'Sanjay Gupta',         type: 'Website',      role: 'Build & Production',   year: '2025', url: 'https://sanjay-gupta---staging---dht-new.webflow.io/', credit: 'team' },
+  { client: 'Stacie Krajcir',       type: 'Website',      role: 'Build & Production',   year: '2025', url: 'https://www.staciekrajcir.com/', credit: 'team' },
+  { client: 'Diane Cardano',        type: 'Website',      role: 'Build & Production',   year: '2025', url: 'https://cardano-realtors.webflow.io/', credit: 'team' },
+  { client: 'Jason Young',          type: 'Website',      role: 'Build & Production',   year: '2025', url: 'https://www.jasonyoungrealtor.com/', credit: 'team' },
+  { client: 'Miguel Jubiz',         type: 'Website',      role: 'Build & Production',   year: '2025', url: 'https://srhomesgroup.com/', credit: 'team' },
+  { client: 'Email Seq. Generator', type: 'SaaS Product', role: 'Solo Build',           year: '2025', url: 'https://sequence.devhousetech.io', credit: 'own' },
+]
 
 const SKILLS = [
   { skill: 'Webflow',          category: 'Development', usedFor: 'Real estate websites, CMS, animations' },
@@ -59,7 +78,7 @@ function Hero() {
   }, [])
 
   return (
-    <section style={{ position:'relative', height:'100dvh', display:'flex', flexDirection:'column', overflowX:'clip', overflowY:'hidden' }}>
+    <section style={{ position:'relative', height:'100vh', display:'flex', flexDirection:'column', overflowX:'clip', overflowY:'hidden' }}>
       <div style={{ position:'absolute', inset:0, zIndex:0, overflow:'hidden' }}>
         <div style={{ position:'absolute', inset:0, background:'var(--bg)' }} />
         <div style={{ position:'absolute', width:'90vw', height:'90vw', borderRadius:'50%', background:'radial-gradient(circle, rgba(80,40,200,0.20) 0%, rgba(74,222,222,0.07) 45%, transparent 70%)', top:'50%', left:'50%', transform:'translate(-50%,-50%)', animation:'orbDrift1 22s ease-in-out infinite', pointerEvents:'none', filter:'blur(4px)' }} />
@@ -176,6 +195,7 @@ const PROJECTS_LIST = [
 function FeaturedProjects({ onEnter, onExitTop }) {
   const [activeIdx, setActiveIdx] = useState(0)
   const [phase, setPhase] = useState('hidden') // hidden | in | active | out | done
+  const [mounted, setMounted] = useState(false)
   const panelRef = useRef(null)
   const atFirstSince = useRef(null)
   const atLastSince = useRef(null)
@@ -184,6 +204,7 @@ function FeaturedProjects({ onEnter, onExitTop }) {
   // Register show trigger so Skills can call it
   useEffect(() => {
     if (onEnter) onEnter(() => {
+      setMounted(true)
       setPhase('hidden')
       requestAnimationFrame(() => {
         setPhase('pre-in')
@@ -338,11 +359,11 @@ function FeaturedProjects({ onEnter, onExitTop }) {
   const panelStyle = {
     position: 'fixed',
     top: 0, left: 0, right: 0,
-    height: '100dvh',
+    height: '100vh',
     zIndex: 4,
     willChange: 'transform',
     overflow: 'hidden',
-    transform: (phase === 'hidden' || phase === 'pre-in' || phase === 'out') ? (window.innerWidth <= 768 ? 'translateX(100vw)' : 'translateY(100dvh)') : 'translate(0,0)',
+    transform: (phase === 'hidden' || phase === 'pre-in' || phase === 'out') ? (window.innerWidth <= 768 ? 'translateX(100vw)' : 'translateY(100vh)') : 'translate(0,0)',
     transition: phase === 'hidden' || phase === 'pre-in' ? 'none' : 'transform 0.9s cubic-bezier(0.76, 0, 0.24, 1)',
   }
 
@@ -352,6 +373,7 @@ function FeaturedProjects({ onEnter, onExitTop }) {
         <div id="work-anchor" style={{ height: 0 }} />
       </section>
       <div ref={panelRef} style={panelStyle}>
+        {mounted && <>
         {/* Crossfade image stack — luxury transition */}
         {PROJECTS_LIST.map((proj, i) => (
           <div key={i} style={{
@@ -404,6 +426,7 @@ function FeaturedProjects({ onEnter, onExitTop }) {
             setPhase('done')
           }}
         />
+        </>}
       </div>
     </>
   )
@@ -560,19 +583,28 @@ function SkillsTable() {
   }, [phase, TOTAL])
 
   const trackOffset = Math.max(0, (activeIdx - 1) * ROW_HEIGHT)
+  const isFixed = phase !== 'sticky'
   const panelStyle = {
-    position: 'fixed',
-    top: 0, left: 0, right: 0,
-    height: '100dvh',
-    zIndex: 3,
+    height: '100vh',
     background: 'var(--bg)',
     overflow: 'hidden',
     display: 'flex',
     flexDirection: 'column',
     justifyContent: 'center',
     willChange: 'transform',
-    transform: (phase === 'hidden' || phase === 'out') ? (window.innerWidth <= 768 ? 'translateX(100vw)' : 'translateY(100dvh)') : 'translate(0,0)',
-    transition: phase === 'hidden' ? 'none' : 'transform 0.9s cubic-bezier(0.76, 0, 0.24, 1)',
+    ...(isFixed ? {
+      position: 'fixed',
+      top: 0, left: 0, right: 0,
+      zIndex: 3,
+      transform: (phase === 'hidden' || phase === 'pre-in' || phase === 'out') ? (window.innerWidth <= 768 ? 'translateX(100vw)' : 'translateY(100vh)') : 'translate(0,0)',
+      transition: phase === 'hidden' ? 'none' : 'transform 0.9s cubic-bezier(0.76, 0, 0.24, 1)',
+    } : {
+      position: 'fixed',
+      top: 0, left: 0, right: 0,
+      zIndex: 3,
+      transform: 'translate(0,0)',
+      transition: 'none',
+    })
   }
 
   return (
@@ -643,6 +675,7 @@ const ABOUT_SLIDES = [
 function About({ onEnter, onExitTop }) {
   const [activeIdx, setActiveIdx] = useState(0)
   const [phase, setPhase] = useState('hidden')
+  const [mounted, setMounted] = useState(false)
   const panelRef = useRef(null)
   const atFirstSince = useRef(null)
   const atLastSince = useRef(null)
@@ -650,6 +683,7 @@ function About({ onEnter, onExitTop }) {
 
   useEffect(() => {
     if (onEnter) onEnter(() => {
+      setMounted(true)
       setPhase('hidden')
       requestAnimationFrame(() => {
         setPhase('pre-in')
@@ -859,12 +893,12 @@ function About({ onEnter, onExitTop }) {
   const panelStyle = {
     position: 'fixed',
     top: 0, left: 0, right: 0,
-    height: '100dvh',
+    height: '100vh',
     zIndex: 5,
     willChange: 'transform',
     overflow: 'hidden',
     background: 'var(--bg)',
-    transform: (phase === 'hidden' || phase === 'pre-in' || phase === 'out') ? (window.innerWidth <= 768 ? 'translateX(100vw)' : 'translateY(100dvh)') : 'translate(0,0)',
+    transform: (phase === 'hidden' || phase === 'pre-in' || phase === 'out') ? (window.innerWidth <= 768 ? 'translateX(100vw)' : 'translateY(100vh)') : 'translate(0,0)',
     transition: phase === 'hidden' || phase === 'pre-in' ? 'none' : 'transform 0.9s cubic-bezier(0.76, 0, 0.24, 1)',
   }
 
@@ -872,6 +906,7 @@ function About({ onEnter, onExitTop }) {
     <>
       <section id="about" style={{ height: '1px', position: 'relative', zIndex: 1 }} />
       <div ref={panelRef} style={panelStyle}>
+        {mounted && <>
 
         {/* Slide 1 — Professional */}
 <div className="about-panel" style={{
@@ -1046,6 +1081,7 @@ overflowY: 'auto',
             }
           }}
         />
+        </>}
 
       </div>
     </>
@@ -1124,12 +1160,12 @@ function Saas({ onEnter, onExitTop }) {
   const panelStyle = {
     position: 'fixed',
     top: 0, left: 0, right: 0,
-    height: '100dvh',
+    height: '100vh',
     zIndex: 6,
     willChange: 'transform',
     overflow: 'hidden',
     background: 'var(--bg)',
-    transform: phase === 'hidden' || phase === 'pre-in' ? 'translateY(100dvh)' : phase === 'out' ? 'translateY(100dvh)' : 'translateY(0)',
+    transform: phase === 'hidden' || phase === 'pre-in' ? 'translateY(100vh)' : phase === 'out' ? 'translateY(100vh)' : 'translateY(0)',
     transition: phase === 'hidden' || phase === 'pre-in' ? 'none' : 'transform 0.9s cubic-bezier(0.76, 0, 0.24, 1)',
   }
 
@@ -1247,7 +1283,7 @@ function MobileContact({ onEnter, onExitTop }) {
     <div className="mobile-contact-panel" style={{
       position: 'fixed',
       top: 0, left: 0, right: 0,
-      height: '100dvh',
+      height: '100vh',
       zIndex: 7,
       display: 'flex',
       flexDirection: 'column',
@@ -1259,6 +1295,7 @@ transition: animating ? 'transform 0.9s cubic-bezier(0.76, 0, 0.24, 1)' : 'none'
 willChange: 'transform',
 background: '#EDEAE4',
     }}>
+      {visible && <>
 
       {/* BLACK — MIKE */}
 <div style={{
@@ -1357,7 +1394,7 @@ flex: 1,
         }}>Let's Connect</a>
 
         {/* Footer */}
-        <div style={{ marginTop: '20px', display: 'flex', justifyContent: 'space-between', width: '100%', borderTop: '1px solid rgba(17,18,20,0.1)', paddingTop: '16px' }}>
+        <div style={{ marginTop: '110px', display: 'flex', justifyContent: 'space-between', width: '100%', borderTop: '1px solid rgba(17,18,20,0.1)', paddingTop: '16px' }}>
           <div style={{ fontSize: '10px', color: '#8A8C92' }}>© 2026 Dan Michael Villamarin</div>
           <a href="https://devhousetech.io" target="_blank" rel="noreferrer" style={{ fontSize: '10px', color: '#8A8C92' }}>devhousetech.io</a>
         </div>
@@ -1365,6 +1402,7 @@ flex: 1,
     
       </div>
 
+      </>}
     </div>
   )
 }
@@ -1418,6 +1456,27 @@ function Contact({ onEnter, onExitTop }) {
     return () => window.removeEventListener('wheel', onWheel)
   }, [visible])
 
+  const navLinks = ['HOME', 'SKILLS', 'PROJECTS', 'ABOUT']
+  const navHrefs = ['/', '#skills', '#work', '#about']
+
+  const handleNavClick = (link, e) => {
+  e.preventDefault()
+  if (link === 'HOME') {
+    window.location.reload()
+    return
+  }
+  handleUp()
+  setTimeout(() => {
+    if (link === 'SKILLS') {
+      if (typeof window.__reenterSkills === 'function') window.__reenterSkills()
+    } else if (link === 'PROJECTS') {
+      if (typeof window.__reenterProjects === 'function') window.__reenterProjects()
+    } else if (link === 'ABOUT') {
+      if (typeof window.__showAbout === 'function') window.__showAbout()
+    }
+  }, 100)
+}
+
   const links = [
   ['HOME', '/', '/'],
   ['ABOUT', '#about', '#about'],
@@ -1455,7 +1514,7 @@ function Contact({ onEnter, onExitTop }) {
       {/* Full panel slides in from right */}
       <div className="contact-panel" style={{
         position: 'fixed',
-        top: 0, left: 0, right: 0, height: '100dvh',
+        top: 0, left: 0, right: 0, height: '100vh',
         zIndex: 7,
         display: 'flex', flexDirection: 'row',
 overflow: 'hidden',
@@ -1586,27 +1645,6 @@ fontSize: '14px',
 // ── APP ───────────────────────────────────────────────────────────────────
 export default function App() {
   const [loading, setLoading] = useState(true)
-  const [showGestureHint, setShowGestureHint] = useState(false)
-
-  // Show gesture hint on mobile only, after loading
-  useEffect(() => {
-    if (loading) return
-    if (window.innerWidth > 768) return
-    const t = setTimeout(() => setShowGestureHint(true), 300)
-    return () => clearTimeout(t)
-  }, [loading])
-
-  // Hide on first swipe or after 4 seconds
-  useEffect(() => {
-    if (!showGestureHint) return
-    const hide = () => setShowGestureHint(false)
-    const t = setTimeout(hide, 4000)
-    window.addEventListener('touchstart', hide, { once: true })
-    return () => {
-      clearTimeout(t)
-      window.removeEventListener('touchstart', hide)
-    }
-  }, [showGestureHint])
 
   useEffect(() => {
     window.__showContact = () => {
@@ -1620,41 +1658,6 @@ export default function App() {
   return (
     <>
       {loading && <LoadingScreen onDone={() => setLoading(false)} />}
-
-      {/* Gesture hint — mobile only, shows once after loading */}
-      {showGestureHint && (
-        <div style={{
-          position: 'fixed', bottom: '80px', left: '50%', transform: 'translateX(-50%)',
-          zIndex: 999, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px',
-          pointerEvents: 'none',
-          animation: 'gestureHintFade 4s ease-in-out forwards',
-        }}>
-          <style>{`
-            @keyframes gestureHintFade {
-              0% { opacity: 0; }
-              15% { opacity: 1; }
-              75% { opacity: 1; }
-              100% { opacity: 0; }
-            }
-            @keyframes swipeAnim {
-              0%, 100% { transform: translateX(0px); opacity: 0.25; }
-              50% { transform: translateX(-22px); opacity: 0.5; }
-            }
-          `}</style>
-          <img src="/gesture-white.png" alt="swipe" style={{
-            width: '64px', height: '64px', objectFit: 'contain',
-            opacity: 0.4,
-            animation: 'swipeAnim 1.2s ease-in-out infinite',
-          }} />
-          <div style={{
-            fontSize: '11px', fontWeight: 600, letterSpacing: '0.1em',
-            textTransform: 'uppercase', color: 'var(--offwhite)', opacity: 0.5,
-            background: 'rgba(12,13,15,0.7)', padding: '6px 14px',
-            borderRadius: '20px', border: '1px solid rgba(196,198,204,0.2)',
-            backdropFilter: 'blur(8px)', whiteSpace: 'nowrap',
-          }}>Swipe to explore</div>
-        </div>
-      )}
       <Nav />
       {/* Hero layer */}
       <div style={{ position:'relative', zIndex:0 }}>
@@ -1679,7 +1682,9 @@ export default function App() {
         onEnter={(fn) => { window.__showMobileContact = fn }}
         onExitTop={() => { if (typeof window.__reenterAbout === 'function') window.__reenterAbout() }}
       />
+      <script dangerouslySetInnerHTML={{ __html: '' }} />
 
+      {/* GameFAB hidden — game is now inside About slide 4 */}
     </>
   )
 }
