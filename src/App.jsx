@@ -71,17 +71,24 @@ function Nav() {
 
 function Hero() {
   const [isMobile, setIsMobile] = useState(false)
+  const [isLowEnd, setIsLowEnd] = useState(false)
   useEffect(() => {
     const check = () => setIsMobile(window.innerWidth < 768)
     check(); window.addEventListener('resize', check)
     return () => window.removeEventListener('resize', check)
+  }, [])
+  useEffect(() => {
+    const cores = navigator.hardwareConcurrency || 4
+    const memory = navigator.deviceMemory || 4
+    const mobile = /Mobi|Android/i.test(navigator.userAgent)
+    setIsLowEnd(cores <= 4 || memory <= 4 || (mobile && cores <= 6))
   }, [])
 
   return (
     <section style={{ position:'relative', height:'100vh', display:'flex', flexDirection:'column', overflowX:'clip', overflowY:'hidden' }}>
       <div style={{ position:'absolute', inset:0, zIndex:0, overflow:'hidden' }}>
         <div style={{ position:'absolute', inset:0, background:'var(--bg)' }} />
-        <div style={{ position:'absolute', width:'90vw', height:'90vw', borderRadius:'50%', background:'radial-gradient(circle, rgba(80,40,200,0.20) 0%, rgba(74,222,222,0.07) 45%, transparent 70%)', top:'50%', left:'50%', transform:'translate(-50%,-50%)', animation:'orbDrift1 22s ease-in-out infinite', pointerEvents:'none', filter:'blur(4px)' }} />
+        {!isLowEnd && <div style={{ position:'absolute', width:'90vw', height:'90vw', borderRadius:'50%', background:'radial-gradient(circle, rgba(80,40,200,0.20) 0%, rgba(74,222,222,0.07) 45%, transparent 70%)', top:'50%', left:'50%', transform:'translate(-50%,-50%)', animation:'orbDrift1 22s ease-in-out infinite', pointerEvents:'none', filter:'blur(4px)' }} />}
       </div>
       <HeroFluid />
       <div className="hero-content" style={{ position:'relative', zIndex:4, height: isMobile?'40%':'32%', minHeight: isMobile?'auto':'260px', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', textAlign:'center', padding:'120px clamp(24px,5vw,80px) 0' }}>
@@ -116,7 +123,7 @@ function Hero() {
             ))}
           </div>
         </div>
-        {!isMobile && (
+        {!isMobile && !isLowEnd && (
           <div style={{ position:'relative', overflow:'visible' }}>
             <div style={{ position:'absolute', top:'-40%', left:'-10%', width:'120%', height:'160%', pointerEvents:'none', userSelect:'none' }}>
               <SVG3D svg={DEVHOUSE_SVG} smoothness={0.6} animate="float" animateSpeed={0.4} cursorOrbit lightPosition={[3,2,4]} />
