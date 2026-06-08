@@ -84,7 +84,7 @@ function Hero() {
         <div style={{ position:'absolute', width:'90vw', height:'90vw', borderRadius:'50%', background:'radial-gradient(circle, rgba(80,40,200,0.20) 0%, rgba(74,222,222,0.07) 45%, transparent 70%)', top:'50%', left:'50%', transform:'translate(-50%,-50%)', animation:'orbDrift1 22s ease-in-out infinite', pointerEvents:'none', filter:'blur(4px)' }} />
       </div>
       <HeroFluid />
-      <div className="hero-content" style={{ position:'relative', zIndex:4, height: isMobile?'40%':'32%', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'flex-end', textAlign:'center', padding:'0 clamp(24px,5vw,80px) clamp(20px,2.5vw,40px)' }}>
+      <div className="hero-content" style={{ position:'relative', zIndex:4, height: isMobile?'40%':'32%', minHeight: isMobile?'auto':'260px', display:'flex', flexDirection:'column', alignItems:'center', justifyContent:'center', textAlign:'center', padding:'120px clamp(24px,5vw,80px) 0' }}>
         <h1 style={{ fontSize:'clamp(26px,4.2vw,64px)', fontWeight:700, letterSpacing:'-0.03em', lineHeight:1.08, color:'var(--offwhite)', marginBottom:'12px' }}>
           Web Design, Development<br /><span style={{ color:'var(--offwhite)' }}>&amp; Real Estate Tech</span>
         </h1>
