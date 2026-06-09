@@ -167,10 +167,13 @@ export default function PixelGame(){
   const musicRef  =useRef(null)
   const jumpSndRef=useRef(null)
   const hitSndRef =useRef(null)
+  const wallGradRef=useRef(null)
+  const edgeGradRef=useRef(null)
   const [started, setStarted]=useState(false)
   const [score,   setScore]  =useState(0)
   const [best,    setBest]   =useState(0)
   const [gameOver,setGameOver]=useState(false)
+  const bestRef=useRef(0)
   const [restartKey,setRestartKey]=useState(0)
   const [fullscreen,setFullscreen]=useState(false)
   const [muted,setMuted]=useState(false)
@@ -248,7 +251,15 @@ export default function PixelGame(){
 
   useEffect(()=>{
     const canvas=canvasRef.current
+    // Half resolution on mobile/tablet for performance
+    const isMobileDevice = window.innerWidth <= 1024
+    if (isMobileDevice) {
+      canvas.width = CW / 2
+      canvas.height = CH / 2
+      canvas.style.width = '100%'
+    }
     const ctx=canvas.getContext('2d'); ctx.imageSmoothingEnabled=false; CTX=ctx
+    if (isMobileDevice) ctx.scale(0.5, 0.5)
     stateRef.current=initState()
     loadImages(()=>{ loadedRef.current=true })
     const stars=Array.from({length:40},()=>({wx:Math.random()*1200,y:8+Math.random()*35,r:Math.random()}))
@@ -257,6 +268,11 @@ export default function PixelGame(){
       CTX=ctx
       const s=stateRef.current, world=worldRef.current
       if(!s||!world){ rafRef.current=requestAnimationFrame(loop); return }
+
+      // Skip full update when idle or game over — just show overlay
+      if(!started || s.gameOver){
+        rafRef.current=requestAnimationFrame(loop); return
+      }
 
       if(started && !s.gameOver){
         s.frame++
@@ -286,6 +302,10 @@ export default function PixelGame(){
         s.wallX=Math.max(s.wallX,s.camX-20); s.x=Math.min(s.x,s.camX+CW-CAR_W_MOV-4)
         world.ensureTo(s.camX+800)
         s.obstacles.ensureTo(s.camX+800,s.score)
+        // Trim obstacles that are far behind camera
+        while(s.obstacles.list.length>0 && s.obstacles.list[0].x < s.camX-200){
+          s.obstacles.list.shift()
+        }
 
         // Car hitbox — padded inward
         const cp=28
@@ -309,18 +329,22 @@ export default function PixelGame(){
           }
         }
 
-        // Realtor collision
+        // Realtor collision — only check visible range
         for(const rea of world.realtors){
+          if(rea.x < s.camX - 100) continue
+          if(rea.x > s.camX + CW + 100) break
           if(rea.bumped){rea.bumpTimer++;continue}
           rea.frame++
           if(cL<rea.x+16&&cR>rea.x&&cT<rea.groundY&&cB>rea.groundY-REA_H){
             rea.bumped=true; rea.bumpTimer=0
             s.score++
             s.popups.push({x:rea.x-s.camX+8,y:rea.groundY-REA_H-12,life:55})
-            setScore(sc=>{ const n=sc+1; setBest(b=>Math.max(b,n)); return n })
           }
         }
-        s.popups=s.popups.map(p=>({...p,y:p.y-.55,life:p.life-1})).filter(p=>p.life>0)
+        for(let pi=s.popups.length-1;pi>=0;pi--){
+          s.popups[pi].y-=0.55; s.popups[pi].life--
+          if(s.popups[pi].life<=0) s.popups.splice(pi,1)
+        }
         for(const cl of world.clouds) cl.wx-=cl.spd
       }
 
@@ -421,15 +445,30 @@ export default function PixelGame(){
       const wg=ctx.createLinearGradient(wSx-10,0,wSx+15,0)
       wg.addColorStop(0,P.walldk); wg.addColorStop(1,'transparent')
       ctx.fillStyle=wg; ctx.fillRect(0,0,Math.max(wSx+15,0),CH)
-      const eg=ctx.createLinearGradient(0,0,30,0)
-      eg.addColorStop(0,'rgba(2,4,8,0.98)'); eg.addColorStop(1,'transparent')
-      ctx.fillStyle=eg; ctx.fillRect(0,0,30,CH)
+      if(!edgeGradRef.current){
+        const eg=ctx.createLinearGradient(0,0,30,0)
+        eg.addColorStop(0,'rgba(2,4,8,0.98)'); eg.addColorStop(1,'transparent')
+        edgeGradRef.current=eg
+      }
+      ctx.fillStyle=edgeGradRef.current; ctx.fillRect(0,0,30,CH)
 
       rafRef.current=requestAnimationFrame(loop)
     }
     rafRef.current=requestAnimationFrame(loop)
     return()=>cancelAnimationFrame(rafRef.current)
   },[started,initState,restartKey])
+
+  // Sync score from game loop to React state at 10fps instead of 60fps
+  useEffect(()=>{
+    const t=setInterval(()=>{
+      if(stateRef.current && started && !stateRef.current.gameOver){
+        const s=stateRef.current.score
+        setScore(s)
+        if(s>bestRef.current){ bestRef.current=s; setBest(s) }
+      }
+    },100)
+    return ()=>clearInterval(t)
+  },[started])
 
   return(
     <section id='minigame' style={{padding:'clamp(80px,10vw,120px) clamp(20px,5vw,60px)',maxWidth:'var(--max)',margin:'0 auto',borderTop:'1px solid var(--border)'}}>

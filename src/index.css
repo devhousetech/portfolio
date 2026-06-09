@@ -116,7 +116,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
   /* About slide 1 */
   .about-panel {
-    padding-top: 580px !important;
+    padding-top: 620px !important;
  
   }
 
@@ -144,7 +144,7 @@ button { font-family: inherit; cursor: pointer; border: none; background: none; 
 
   /* About slide 3 — SaaS */
   .saas-slide {
-    padding-top: 220px !important;
+    padding-top: 290px !important;
 
   }
 
